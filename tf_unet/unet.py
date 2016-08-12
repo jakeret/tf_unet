@@ -90,120 +90,133 @@ def create_conv_net(x, keep_prob, channels, n_class, chanel_root = 4, field_of_v
     
     # Max Pool 1
     h_pool1 = max_pool(h_conv2, max_pool_size)
-    
+     
     # Convolution 3
     W_conv3 = weight_variable([field_of_view, field_of_view, chanel_root, 2*chanel_root])
     b_conv3 = bias_variable([2*chanel_root])
     conv_3 = conv2d(h_pool1, W_conv3,keep_prob)
     h_conv3 = tf.nn.relu(conv_3 + b_conv3)
-    
+     
     # Convolution 4
     W_conv4 = weight_variable([field_of_view, field_of_view, 2*chanel_root, 2*chanel_root])
     b_conv4 = bias_variable([2*chanel_root])
     conv_4 = conv2d(h_conv3, W_conv4,keep_prob)
     h_conv4 = tf.nn.relu(conv_4 + b_conv4)
-    
+     
     # Max Pool 2
     h_pool2 = max_pool(h_conv4, max_pool_size)
-    
+     
     # Convolution 5
     W_conv5 = weight_variable([field_of_view, field_of_view, 2*chanel_root, 4*chanel_root])
     b_conv5 = bias_variable([4*chanel_root])
     conv_5 = conv2d(h_pool2, W_conv5,keep_prob)
     h_conv5 = tf.nn.relu(conv_5 + b_conv5)
-    
+     
     # Convolution 6
     W_conv6 = weight_variable([field_of_view, field_of_view, 4*chanel_root, 4*chanel_root])
     b_conv6 = bias_variable([4*chanel_root])
     conv_6 = conv2d(h_conv5, W_conv6,keep_prob)
     h_conv6 = tf.nn.relu(conv_6 + b_conv6)
-    
+     
     # Max Pool 3
     h_pool3 = max_pool(h_conv6, max_pool_size)
-    
+     
     # Convolution 7
     W_conv7 = weight_variable([field_of_view, field_of_view, 4*chanel_root, 8*chanel_root])
     b_conv7 = bias_variable([8*chanel_root])
     conv_7 = conv2d(h_pool3, W_conv7,keep_prob)
     h_conv7 = tf.nn.relu(conv_7 + b_conv7)
-    
+     
     # Convolution 8
     W_conv8 = weight_variable([field_of_view, field_of_view, 8*chanel_root, 8*chanel_root])
     b_conv8 = bias_variable([8*chanel_root])
     conv_8 = conv2d(h_conv7, W_conv8,keep_prob)
     h_conv8 = tf.nn.relu(conv_8 + b_conv8)
-    
+     
     # Max Pool 4
     h_pool4 = max_pool(h_conv8, max_pool_size)
-    
+     
     # Convolution 9
     W_conv9 = weight_variable([field_of_view, field_of_view, 8*chanel_root, 16*chanel_root])
     b_conv9 = bias_variable([16*chanel_root])
     conv_9 = conv2d(h_pool4, W_conv9,keep_prob)
     h_conv9 = tf.nn.relu(conv_9 + b_conv9)
-    
+     
     # Convolution 10
     W_conv10 = weight_variable([field_of_view, field_of_view, 16*chanel_root, 16*chanel_root])
     b_conv10 = bias_variable([16*chanel_root])
     conv_10 = conv2d(h_conv9, W_conv10,keep_prob)
     h_conv10 = tf.nn.relu(conv_10 + b_conv10)
-    
+     
     # Deconvolution 1
     W_deconv_1 = weight_variable_devonc([max_pool_size, max_pool_size, 8*chanel_root, 16*chanel_root])
     b_deconv1 = bias_variable([8*chanel_root])
     deconv_1 = deconv2d(h_conv10, W_deconv_1, max_pool_size)
     h_deconv1 = tf.nn.relu(deconv_1 + b_deconv1)
     h_deconv1_concat = crop_and_concat(h_conv8, h_deconv1, [batch_size, (((nx-180)/2+4)/2+4)/2+4, (((ny-180)/2+4)/2+4)/2+4, 8*chanel_root])
-    
-    # Convolution 11
+#     
+#     # Convolution 11
+#     offsets = tf.zeros(tf.pack([batch_size, 2]), dtype=tf.float32)
+#     size = tf.to_int32(tf.pack([(((nx-192)/2+4)/2+4)/2+4, (((ny-192)/2+4)/2+4)/2+4]))
+#     h_conv11 = tf.image.extract_glimpse(h_conv8, size=size, offsets=offsets, centered=True)
     W_conv11 = weight_variable([field_of_view, field_of_view, 16*chanel_root, 8*chanel_root])
     b_conv11 = bias_variable([8*chanel_root])
     h_conv11 = tf.nn.relu(conv2d(h_deconv1_concat, W_conv11,keep_prob) + b_conv11)
-    
+#     
     # Convolution 12
     W_conv12 = weight_variable([field_of_view, field_of_view, 8*chanel_root, 8*chanel_root])
     b_conv12 = bias_variable([8*chanel_root])
     h_conv12 = tf.nn.relu(conv2d(h_conv11, W_conv12,keep_prob) + b_conv12)
-    
+     
     # Deconvolution 2
     W_deconv_2 = weight_variable_devonc([max_pool_size, max_pool_size, 4*chanel_root, 8*chanel_root])
     b_deconv2 = bias_variable([4*chanel_root])
     h_deconv2 = tf.nn.relu(deconv2d(h_conv12, W_deconv_2, max_pool_size) + b_deconv2)
     h_deconv2_concat = crop_and_concat(h_conv6,h_deconv2,[batch_size,((nx-180)/2+4)/2+4,((ny-180)/2+4)/2+4,4*chanel_root])
-    
-    # Convolution 13
+#     
+#     # Convolution 13
+#     offsets = tf.zeros(tf.pack([batch_size, 2]), dtype=tf.float32)
+#     size = tf.to_int32(tf.pack([((nx-186)/2+4)/2+4,((ny-186)/2+4)/2+4]))
+#     h_conv13 = tf.image.extract_glimpse(h_conv6, size=size, offsets=offsets, centered=True)
     W_conv13 = weight_variable([field_of_view, field_of_view, 8*chanel_root, 4*chanel_root])
     b_conv13 = bias_variable([4*chanel_root])
     h_conv13 = tf.nn.relu(conv2d(h_deconv2_concat, W_conv13,keep_prob) + b_conv13)
-    
+#     
     # Convolution 14
     W_conv14 = weight_variable([field_of_view, field_of_view, 4*chanel_root, 4*chanel_root])
     b_conv14 = bias_variable([4*chanel_root])
     h_conv14 = tf.nn.relu(conv2d(h_conv13, W_conv14,keep_prob) + b_conv14)
-    
+     
     # Deconvolution 3
     W_deconv_3 = weight_variable_devonc([max_pool_size, max_pool_size, 2*chanel_root, 4*chanel_root])
     b_deconv3 = bias_variable([2*chanel_root])
     h_deconv3 = tf.nn.relu(deconv2d(h_conv14, W_deconv_3, max_pool_size) + b_deconv3)
     h_deconv3_concat = crop_and_concat(h_conv4,h_deconv3,[batch_size,(nx-180)/2+4,(ny-180)/2+4,2*chanel_root])
-    
+
     # Convolution 15
+#     offsets = tf.zeros(tf.pack([batch_size, 2]), dtype=tf.float32)
+#     size = tf.to_int32(tf.pack([(nx-184)/2+4,(ny-184)/2+4]))
+#     h_conv15 = tf.image.extract_glimpse(h_conv4, size=size, offsets=offsets, centered=True)
     W_conv15 = weight_variable([field_of_view, field_of_view, 4*chanel_root, 2*chanel_root])
     b_conv15 = bias_variable([2*chanel_root])
     h_conv15 = tf.nn.relu(conv2d(h_deconv3_concat, W_conv15,keep_prob) + b_conv15)
-    
+     
     # Convolution 16
     W_conv16 = weight_variable([field_of_view, field_of_view, 2*chanel_root, 2*chanel_root])
     b_conv16 = bias_variable([2*chanel_root])
     h_conv16 = tf.nn.relu(conv2d(h_conv15, W_conv16,keep_prob) + b_conv16)
-    
+     
     # Deconvolution 4
     W_deconv_4 = weight_variable_devonc([max_pool_size, max_pool_size, chanel_root, 2*chanel_root])
     b_deconv4 = bias_variable([chanel_root])
     h_deconv4 = tf.nn.relu(deconv2d(h_conv16, W_deconv_4, max_pool_size) + b_deconv4)
     h_deconv4_concat = crop_and_concat(h_conv2,h_deconv4,[batch_size,nx-180,ny-180,chanel_root])
     
+    
     # Convolution 17
+#     offsets = tf.zeros(tf.pack([batch_size, 2]), dtype=tf.float32)
+#     size = tf.to_int32(tf.pack([nx-182,ny-182]))
+#     h_conv17 = tf.image.extract_glimpse(h_conv2, size=size, offsets=offsets, centered=True)
     W_conv17 = weight_variable([field_of_view, field_of_view, 2*chanel_root, chanel_root])
     b_conv17 = bias_variable([chanel_root])
     h_conv17 = tf.nn.relu(conv2d(h_deconv4_concat, W_conv17,keep_prob) + b_conv17)
@@ -373,6 +386,7 @@ class Trainer(object):
     def store_prediction(self, sess, data_provider, epoch):
         batch_x, batch_y = data_provider(1)
         prediction = sess.run(self.net.predicter, feed_dict={self.net.x: batch_x, self.net.y: batch_y, self.net.keep_prob: 1.})
+        
         img = combine_img_prediction(batch_x, batch_y, prediction)
         Image.fromarray(img).save("%s/epoch_%s.png"%(self.prediction_path, epoch))
 #                 batch_x, batch_y = data_provider(4)
