@@ -14,22 +14,22 @@ import numpy as np
 
 def plot_prediction(x_test, y_test, prediction, save=False):
     test_size = x_test.shape[0]
-    fig, ax = plt.subplots(test_size, 4, figsize=(12,12), sharey=True, sharex=True)
+    fig, ax = plt.subplots(test_size, 3, figsize=(12,12), sharey=True, sharex=True)
     ax = np.atleast_2d(ax)
     for i in range(test_size):
         cax = ax[i, 0].imshow(x_test[i, 92:-92, 92:-92])
         plt.colorbar(cax, ax=ax[i,0])
         cax = ax[i, 1].imshow(y_test[i, ..., 1])
         plt.colorbar(cax, ax=ax[i,1])
-        cax = ax[i, 2].imshow(prediction[i, ..., 0])
+        pred = prediction[i, ..., 1]
+        pred -= np.amin(pred)
+        pred /= np.amax(pred)
+        cax = ax[i, 2].imshow(pred)
         plt.colorbar(cax, ax=ax[i,2])
-        cax = ax[i, 3].imshow(prediction[i, ..., 1])
-        plt.colorbar(cax, ax=ax[i,3])
         if i==0:
             ax[i, 0].set_title("x")
             ax[i, 1].set_title("y")
-            ax[i, 2].set_title("pred 0")
-            ax[i, 3].set_title("pred 1")
+            ax[i, 2].set_title("pred")
     fig.tight_layout()
     
     if save:
