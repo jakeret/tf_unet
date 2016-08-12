@@ -6,9 +6,9 @@ Created on Jul 28, 2016
 author: jakeret
 '''
 from __future__ import print_function, division, absolute_import, unicode_literals
-import unet
-import image_gen
-from util import plot_prediction
+from tf_unet import image_gen
+from tf_unet import unet
+from tf_unet import util
 
 if __name__ == '__main__':
     nx = 572
@@ -39,4 +39,4 @@ if __name__ == '__main__':
     prediction = net.predict(path, x_test)
      
     print("Testing error rate: {:.2f}%".format(unet.error_rate(prediction, y_test)))
-    plot_prediction(x_test[..., 0], y_test, prediction)
+    util.plot_prediction(x_test[..., 0], y_test, prediction)

@@ -1,0 +1,9 @@
+include AUTHORS.rst
+include CONTRIBUTING.rst
+include HISTORY.rst
+include LICENSE
+include README.rst
+include requirements.txt
+include Makefile
+include docs/*
+include test/*

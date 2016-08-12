@@ -10,9 +10,8 @@ from __future__ import print_function, division, absolute_import, unicode_litera
 import tensorflow as tf
 import os
 import numpy as np
-from util import plot_prediction
 from PIL import Image
-from util import combine_img_prediction
+from tf_unet.util import combine_img_prediction
 
 def weight_variable(shape):
     initial = tf.truncated_normal(shape, stddev=0.1)
