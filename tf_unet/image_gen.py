@@ -45,13 +45,13 @@ def create_image_and_label(nx,ny):
     image -= np.amin(image)
     image /= np.amax(image)
     
-    return image, label[border:nx-border,border:nx-border]
+    return image, label
 
 def get_image_gen(nx, ny):
     def create_batch(n_image):
         
         X = np.zeros((n_image,nx,ny, 1))
-        Y = np.zeros((n_image,nx-184,ny-184,2))
+        Y = np.zeros((n_image,nx,ny,2))
         
         for i in range(n_image):
             X[i],Y[i,:,:,1] = create_image_and_label(nx,ny)
