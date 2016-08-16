@@ -58,7 +58,9 @@ def crop_to_shape(data, shape):
     return data[:, offset0:(-offset0), offset1:(-offset1)]
 
 def combine_img_prediction(data, gt, pred):
-    img = np.concatenate((to_rgb(crop_to_shape(data, pred.shape)[0]), 
-                          to_rgb(crop_to_shape(gt[..., 1], pred.shape)[0]), 
-                          to_rgb(pred[0, ..., 1])), axis=1)
+    ny = pred.shape[2]
+    ch = data.shape[3]
+    img = np.concatenate((to_rgb(crop_to_shape(data, pred.shape).reshape(-1, ny, ch)), 
+                          to_rgb(crop_to_shape(gt[..., 1], pred.shape).reshape(-1, ny, 1)), 
+                          to_rgb(pred[..., 1].reshape(-1, ny, 1))), axis=1)
     return img.round().astype(np.uint8)

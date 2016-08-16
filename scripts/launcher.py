@@ -19,7 +19,7 @@ if __name__ == '__main__':
      
     n_image = 1 #batch size
     training_iters = 20
-    epochs = 100
+    epochs = 10
     dropout = 0.75 # Dropout, probability to keep units
     display_step = 2
     restore = False

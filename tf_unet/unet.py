@@ -67,7 +67,7 @@ def cross_entropy(y_,output_map):
     return -tf.reduce_mean(y_*tf.log(tf.clip_by_value(output_map,1e-10,1.0)), name="cross_entropy")
 #     return tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(output_map), reduction_indices=[1]))
 
-def create_conv_net(x, keep_prob, channels, n_class, layers=3, chanel_root=64, field_of_view = 3, max_pool_size = 2):
+def create_conv_net(x, keep_prob, channels, n_class, layers=2, chanel_root=32, field_of_view = 3, max_pool_size = 2):
     # Placeholder for the input image
     nx = tf.shape(x)[1]
     ny = tf.shape(x)[2]
@@ -356,8 +356,13 @@ class Unet(object):
 #         tf.scalar_summary('dropout_keep_probability',self.keep_prob)
         
         logits = create_conv_net(self.x, self.keep_prob, channels, n_class)
-        self.cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(tf.reshape(logits, [-1, n_class]), 
+        loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(tf.reshape(logits, [-1, n_class]), 
                                                                            tf.reshape(self.y, [-1, n_class])))
+        
+        reg_losses = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
+        reg_constant = 0.001  # Choose an appropriate one.
+        self.cost = loss + reg_constant * sum(reg_losses)
+        
 #         tf.scalar_summary('cross entropy', self.cost)
 #         self.cost = cross_entropy(self.y, self.net)
 #         self.predicter = pixel_wise_softmax(logits)
@@ -414,6 +419,11 @@ class Trainer(object):
         self.optimizer = tf.train.MomentumOptimizer(learning_rate=self.learning_rate, 
                                                     momentum=self.momentum).minimize(self.net.cost, 
                                                                                      global_step=global_step)
+                                                    
+        #self.optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate, beta1=0.9, beta2=0.999, epsilon=1e-08, use_locking=False, name='Adam').minimize(self.net.cost, 
+        #                                            global_step=global_step)
+                                                                                     
+
         self.summary_op = tf.merge_all_summaries()        
         init = tf.initialize_all_variables()
         
@@ -468,9 +478,10 @@ class Trainer(object):
             return save_path
         
     def store_prediction(self, sess, data_provider, epoch):
-        batch_x, batch_y = data_provider(1)
+        batch_x, batch_y = data_provider(4)
         prediction = sess.run(self.net.predicter, feed_dict={self.net.x: batch_x, self.net.y: batch_y, self.net.keep_prob: 1.})
-        
+        print("Epoch error= {:.1f}%".format(error_rate(prediction, batch_y)))
+              
         img = combine_img_prediction(batch_x, batch_y, prediction)
         Image.fromarray(img).save("%s/epoch_%s.png"%(self.prediction_path, epoch))
 #                 batch_x, batch_y = data_provider(4)
