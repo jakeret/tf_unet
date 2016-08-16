@@ -9,6 +9,7 @@ from __future__ import print_function, division, absolute_import, unicode_litera
 from tf_unet import image_gen
 from tf_unet import unet
 from tf_unet import util
+from PIL import Image
 
 if __name__ == '__main__':
     nx = 572
@@ -39,4 +40,5 @@ if __name__ == '__main__':
     prediction = net.predict(path, x_test)
      
     print("Testing error rate: {:.2f}%".format(unet.error_rate(prediction, y_test)))
-    util.plot_prediction(x_test[..., 0], y_test, prediction, save="prediction.png")
+    img = util.combine_img_prediction(x_test, y_test, prediction)
+    Image.fromarray(img).save("prediction.png")

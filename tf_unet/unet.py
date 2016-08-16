@@ -67,7 +67,7 @@ def cross_entropy(y_,output_map):
     return -tf.reduce_mean(y_*tf.log(tf.clip_by_value(output_map,1e-10,1.0)), name="cross_entropy")
 #     return tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(output_map), reduction_indices=[1]))
 
-def create_conv_net(x, keep_prob, channels, n_class, layers=2, chanel_root=32, field_of_view = 3, max_pool_size = 2):
+def create_conv_net(x, keep_prob, channels, n_class, layers=3, chanel_root=64, field_of_view = 3, max_pool_size = 2):
     # Placeholder for the input image
     nx = tf.shape(x)[1]
     ny = tf.shape(x)[2]
