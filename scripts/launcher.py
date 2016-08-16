@@ -14,7 +14,7 @@ from PIL import Image
 if __name__ == '__main__':
     nx = 572
     ny = 572
-    channels = 1
+    channels = 3
     n_class = 2
      
     n_image = 1 #batch size
@@ -24,9 +24,9 @@ if __name__ == '__main__':
     display_step = 2
     restore = False
  
-    generator = image_gen.get_image_gen(nx, ny)
+    generator = image_gen.get_image_gen_rgb(nx, ny)
     
-    net = unet.Unet(nx, ny, channels, n_class, layers=3)
+    net = unet.Unet(nx, ny, channels, n_class, layers=2)
     
     trainer = unet.Trainer(net, batch_size=n_image)
     path = trainer.train(generator, "./unet_trained", 

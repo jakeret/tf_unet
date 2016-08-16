@@ -493,9 +493,6 @@ class Trainer(object):
               
         img = combine_img_prediction(batch_x, batch_y, prediction)
         Image.fromarray(img).save("%s/epoch_%s.png"%(self.prediction_path, epoch))
-#                 batch_x, batch_y = data_provider(4)
-#                 prediction = sess.run(self.net.predicter, feed_dict={self.net.x: batch_x, self.net.y: batch_y, self.net.keep_prob: 1.})
-#                 plot_prediction(batch_x[...,0], batch_y, prediction, save="training/epoch_%s.png"%epoch)
         return prediction.shape
     
     def output_epoch_stats(self, epoch, total_loss, training_iters, lr):

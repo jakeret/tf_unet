@@ -59,6 +59,31 @@ def get_image_gen(nx, ny):
         return X,Y
     return create_batch
 
+def get_image_gen_rgb(nx, ny):
+    def create_batch(n_image):
+            
+            X = np.zeros((n_image, nx, ny, 3))
+            Y = np.zeros((n_image, nx, ny,2))
+            
+            for i in range(n_image):
+                x, Y[i,:,:,1] = create_image_and_label(nx,ny)
+                X[i] = to_rgb(x)
+                Y[i,:,:,0] = 1-Y[i,:,:,1]
+                
+            return X, Y
+    return create_batch
+
+def to_rgb(img):
+    img = img.reshape(img.shape[0], img.shape[1])
+    img[np.isnan(img)] = 0
+    img -= np.amin(img)
+    img /= np.amax(img)
+    blue = np.clip(4*(0.75-img), 0, 1)
+    red  = np.clip(4*(img-0.25), 0, 1)
+    green= np.clip(44*np.fabs(img-0.5)-1., 0, 1)
+    rgb = np.stack((red, green, blue), axis=2)
+    return rgb
+
 # def create_image_and_label(nx,ny):
 #     x = np.floor(np.random.rand(1)[0]*nx).astype(np.int)
 #     y = np.floor(np.random.rand(1)[0]*ny).astype(np.int)
