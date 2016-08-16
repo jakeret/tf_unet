@@ -46,7 +46,8 @@ def to_rgb(img):
     channels = img.shape[2]
     if channels < 3:
         img = np.tile(img, 3)
-        
+    
+    img[np.isnan(img)] = 0
     img -= np.amin(img)
     img /= np.amax(img)
     img *= 255

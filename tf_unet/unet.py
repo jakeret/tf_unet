@@ -13,6 +13,7 @@ import numpy as np
 from PIL import Image
 from tf_unet.util import combine_img_prediction
 from tf_unet.util import crop_to_shape
+import shutil
 
 def weight_variable(shape):
     initial = tf.truncated_normal(shape, stddev=0.1)
@@ -67,7 +68,7 @@ def cross_entropy(y_,output_map):
     return -tf.reduce_mean(y_*tf.log(tf.clip_by_value(output_map,1e-10,1.0)), name="cross_entropy")
 #     return tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(output_map), reduction_indices=[1]))
 
-def create_conv_net(x, keep_prob, channels, n_class, layers=2, chanel_root=32, field_of_view = 3, max_pool_size = 2):
+def create_conv_net(x, keep_prob, channels, n_class, layers=2, chanel_root=32, field_of_view=3, max_pool_size=2):
     # Placeholder for the input image
     nx = tf.shape(x)[1]
     ny = tf.shape(x)[2]
@@ -82,6 +83,7 @@ def create_conv_net(x, keep_prob, channels, n_class, layers=2, chanel_root=32, f
     deconv = {}
     h_convs = {}
     
+    # down layers
     for layer in range(0, layers):
         features = 2**layer*chanel_root
         if layer == 0:
@@ -108,6 +110,7 @@ def create_conv_net(x, keep_prob, channels, n_class, layers=2, chanel_root=32, f
         
     in_node = h_convs[layers-1]
         
+    # up layers
     for layer in range(layers-2, -1, -1):
         features = 2**(layer+1)*chanel_root
         
@@ -345,7 +348,7 @@ def create_conv_net2(x, keep_prob, channels, n_class, chanel_root = 32, field_of
 
 class Unet(object):
     
-    def __init__(self, nx, ny, channels=3, n_class=2):
+    def __init__(self, nx, ny, channels=3, n_class=2, **kwargs):
         self.nx = nx
         self.ny = ny
         self.n_class = n_class
@@ -355,7 +358,7 @@ class Unet(object):
         self.keep_prob = tf.placeholder(tf.float32) #dropout (keep probability)
 #         tf.scalar_summary('dropout_keep_probability',self.keep_prob)
         
-        logits = create_conv_net(self.x, self.keep_prob, channels, n_class)
+        logits = create_conv_net(self.x, self.keep_prob, channels, n_class, **kwargs)
         loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(tf.reshape(logits, [-1, n_class]), 
                                                                            tf.reshape(self.y, [-1, n_class])))
         
@@ -405,7 +408,7 @@ class Trainer(object):
         self.batch_size = batch_size
         self.momentum = momentum
         
-    def _initialize(self, training_iters, output_path):
+    def _initialize(self, training_iters, output_path, restore):
         global_step = tf.Variable(0)
         self.learning_rate = tf.train.exponential_decay(learning_rate=0.2, 
                                                         global_step=global_step, 
@@ -427,6 +430,10 @@ class Trainer(object):
         self.summary_op = tf.merge_all_summaries()        
         init = tf.initialize_all_variables()
         
+        if not restore:
+            shutil.rmtree(self.prediction_path)
+            shutil.rmtree(output_path)
+        
         if not os.path.exists(self.prediction_path):
             os.mkdir(self.prediction_path)
         
@@ -437,11 +444,13 @@ class Trainer(object):
 
     def train(self, data_provider, output_path, training_iters=10, epochs=100, dropout=0.75, display_step=1, restore=False):
         
-        init = self._initialize(training_iters, output_path)
+        init = self._initialize(training_iters, output_path, restore)
         save_path = os.path.join(output_path, "model.cpkt")
         
         if epochs == 0:
             return save_path
+        
+        print("Start optimization")
         
         with tf.Session() as sess:
             sess.run(init)
