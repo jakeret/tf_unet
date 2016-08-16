@@ -6,13 +6,13 @@ Created on Aug 10, 2016
 author: jakeret
 '''
 from __future__ import print_function, division, absolute_import, unicode_literals
-
-import matplotlib
-matplotlib.use('qt4agg')
-import matplotlib.pyplot as plt
 import numpy as np
 
 def plot_prediction(x_test, y_test, prediction, save=False):
+    
+    import matplotlib
+    matplotlib.use('TKAgg')
+    import matplotlib.pyplot as plt
     test_size = x_test.shape[0]
     fig, ax = plt.subplots(test_size, 3, figsize=(12,12), sharey=True, sharex=True)
     

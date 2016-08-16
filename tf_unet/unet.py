@@ -362,7 +362,7 @@ class Unet(object):
 #         self.cost = cross_entropy(self.y, self.net)
 #         self.predicter = pixel_wise_softmax(logits)
         self.predicter = pixel_wise_softmax_2(logits)
-        self.correct_pred = tf.equal(tf.argmax(self.predicter, 1), tf.argmax(self.y, 1))
+        self.correct_pred = tf.equal(tf.argmax(self.predicter, 3), tf.argmax(self.y, 3))
         self.accuracy = tf.reduce_mean(tf.cast(self.correct_pred, tf.float32))
         tf.scalar_summary('accuracy', self.accuracy)
 
