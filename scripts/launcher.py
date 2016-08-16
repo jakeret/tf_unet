@@ -18,7 +18,7 @@ if __name__ == '__main__':
      
     n_image = 1 #batch size
     training_iters = 20
-    epochs = 10
+    epochs = 100
     dropout = 0.75 # Dropout, probability to keep units
     display_step = 2
     restore = False
@@ -39,4 +39,4 @@ if __name__ == '__main__':
     prediction = net.predict(path, x_test)
      
     print("Testing error rate: {:.2f}%".format(unet.error_rate(prediction, y_test)))
-    util.plot_prediction(x_test[..., 0], y_test, prediction)
+    util.plot_prediction(x_test[..., 0], y_test, prediction, save="prediction.png")
