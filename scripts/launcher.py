@@ -25,7 +25,7 @@ if __name__ == '__main__':
  
     generator = image_gen.get_image_gen(nx, ny, cnt=20)
     
-    net = unet.Unet(channels=channels, n_class=n_class, layers=4, features_root=16)
+    net = unet.Unet(channels=channels, n_class=n_class, layers=4, features_root=64)
     
     trainer = unet.Trainer(net)
     path = trainer.train(generator, "./unet_trained", 
