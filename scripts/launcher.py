@@ -27,7 +27,7 @@ if __name__ == '__main__':
     
     net = unet.Unet(channels=channels, n_class=n_class, layers=3, features_root=16)
     
-    trainer = unet.Trainer(net)
+    trainer = unet.Trainer(net, momentum=0.2)
     path = trainer.train(generator, "./unet_trained", 
                          training_iters=training_iters, 
                          epochs=epochs, 

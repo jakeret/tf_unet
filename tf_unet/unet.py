@@ -66,7 +66,7 @@ def cross_entropy(y_,output_map):
     return -tf.reduce_mean(y_*tf.log(tf.clip_by_value(output_map,1e-10,1.0)), name="cross_entropy")
 #     return tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(output_map), reduction_indices=[1]))
 
-def create_conv_net(x, keep_prob, channels, n_class, layers=2, features_root=32, filter_size=3, pool_size=2):
+def create_conv_net(x, keep_prob, channels, n_class, layers=3, features_root=16, filter_size=3, pool_size=2):
     # Placeholder for the input image
     nx = tf.shape(x)[1]
     ny = tf.shape(x)[2]
@@ -457,7 +457,8 @@ class Trainer(object):
                 if ckpt and ckpt.model_checkpoint_path:
                     self.net.restore(sess, ckpt.model_checkpoint_path)
             
-            pred_shape = self.store_prediction(sess, data_provider, "start")
+            test_x, test_y = data_provider(4)
+            pred_shape = self.store_prediction(sess, test_x, test_y, "start")
             
             summary_writer = tf.train.SummaryWriter(output_path, graph=sess.graph)
             
@@ -476,15 +477,14 @@ class Trainer(object):
                     total_loss += loss
 
                 self.output_epoch_stats(epoch, total_loss, training_iters, lr)
-                self.store_prediction(sess, data_provider, epoch)
+                self.store_prediction(sess, test_x, test_y, epoch)
                     
                 save_path = self.net.save(sess, save_path)
             print("Optimization Finished!")
             
             return save_path
         
-    def store_prediction(self, sess, data_provider, epoch):
-        batch_x, batch_y = data_provider(4)
+    def store_prediction(self, sess, batch_x, batch_y, epoch):
         prediction = sess.run(self.net.predicter, feed_dict={self.net.x: batch_x, self.net.y: batch_y, self.net.keep_prob: 1.})
         print("Prediction error= {:.1f}%".format(error_rate(prediction, 
                                                        util.crop_to_shape(batch_y, 
