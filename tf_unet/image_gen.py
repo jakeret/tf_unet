@@ -23,16 +23,16 @@ def create_image_and_label(nx,ny, cnt = 10):
     border = 92
     sigma = 20
     
-    image = np.ones((ny, nx, 1))
-    label = np.ones((ny, nx))
-    mask = np.zeros((nx,ny), dtype=np.bool)
+    image = np.ones((nx, ny, 1))
+    label = np.ones((nx, ny))
+    mask = np.zeros((nx, ny), dtype=np.bool)
     for _ in range(cnt):
         a = np.random.randint(border, nx-border)
         b = np.random.randint(border, ny-border)
         r = np.random.randint(r_min, r_max)
         h = np.random.randint(1,255)
 
-        y,x = np.ogrid[-a:ny-a, -b:nx-b]
+        y,x = np.ogrid[-a:nx-a, -b:ny-b]
         m = x*x + y*y <= r*r
         mask = np.logical_or(mask, m)
 
