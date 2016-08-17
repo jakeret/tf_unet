@@ -12,8 +12,8 @@ from tf_unet import util
 
 
 if __name__ == '__main__':
-    nx = 572*2
-    ny = 572*2
+    nx = 572
+    ny = 572
     channels = 1
     n_class = 2
      
