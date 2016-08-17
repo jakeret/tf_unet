@@ -348,9 +348,7 @@ def create_conv_net2(x, keep_prob, channels, n_class, chanel_root = 32, field_of
 
 class Unet(object):
     
-    def __init__(self, nx, ny, channels=3, n_class=2, **kwargs):
-        self.nx = nx
-        self.ny = ny
+    def __init__(self, nx=None, ny=None, channels=3, n_class=2, **kwargs):
         self.n_class = n_class
         
         self.x = tf.placeholder("float", shape=[None, nx, ny, channels])
@@ -384,7 +382,7 @@ class Unet(object):
             # Restore model weights from previously saved model
             self.restore(sess, model_path)
             
-            y_dummy = np.empty((x_test.shape[0], self.nx, self.ny, self.n_class))
+            y_dummy = np.empty((x_test.shape[0], x_test.shape[1], x_test.shape[2], self.n_class))
             prediction = sess.run(self.predicter, feed_dict={self.x: x_test, self.y: y_dummy, self.keep_prob: 1.})
             
         return prediction

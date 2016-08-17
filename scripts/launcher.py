@@ -17,7 +17,6 @@ if __name__ == '__main__':
     channels = 3
     n_class = 2
      
-    n_image = 1 #batch size
     training_iters = 20
     epochs = 10
     dropout = 0.75 # Dropout, probability to keep units
@@ -26,9 +25,9 @@ if __name__ == '__main__':
  
     generator = image_gen.get_image_gen_rgb(nx, ny)
     
-    net = unet.Unet(nx, ny, channels, n_class, layers=3)
+    net = unet.Unet(channels=channels, n_class=n_class, layers=2)
     
-    trainer = unet.Trainer(net, batch_size=n_image)
+    trainer = unet.Trainer(net)
     path = trainer.train(generator, "./unet_trained", 
                          training_iters=training_iters, 
                          epochs=epochs, 
