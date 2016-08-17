@@ -14,7 +14,7 @@ from tf_unet import util
 if __name__ == '__main__':
     nx = 572
     ny = 572
-    channels = 1
+    channels = 3
     n_class = 2
      
     training_iters = 20
@@ -23,9 +23,9 @@ if __name__ == '__main__':
     display_step = 2
     restore = False
  
-    generator = image_gen.get_image_gen(nx, ny, cnt=20)
+    generator = image_gen.get_image_gen_rgb(nx, ny, cnt=20)
     
-    net = unet.Unet(channels=channels, n_class=n_class, layers=4, features_root=64)
+    net = unet.Unet(channels=channels, n_class=n_class, layers=3, features_root=16)
     
     trainer = unet.Trainer(net)
     path = trainer.train(generator, "./unet_trained", 
