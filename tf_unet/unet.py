@@ -13,14 +13,14 @@ import shutil
 import numpy as np
 from tf_unet import util
 
-def weight_variable(shape):
-    initial = tf.truncated_normal(shape, stddev=0.1)
+def weight_variable(shape, stddev=0.1):
+    initial = tf.truncated_normal(shape, stddev=stddev)
     return tf.Variable(initial)
 
-def weight_variable_devonc(shape):
+def weight_variable_devonc(shape, stddev=0.1):
 #     initial = 1.0/float(shape[0]*shape[1])
     #return tf.Variable(tf.add((np.ones(shape)*initial).astype(float32),tf.truncated_normal(shape, stddev=0.1)))
-    return tf.Variable(tf.truncated_normal(shape, stddev=0.1))
+    return tf.Variable(tf.truncated_normal(shape, stddev=stddev))
 
 def bias_variable(shape):
     initial = tf.constant(0.1, shape=shape)
@@ -81,15 +81,16 @@ def create_conv_net(x, keep_prob, channels, n_class, layers=2, features_root=32,
     deconv = {}
     h_convs = {}
     
+    stddev = np.sqrt(2 / (filter_size**2 * features_root))
     # down layers
     for layer in range(0, layers):
         features = 2**layer*features_root
         if layer == 0:
-            w1 = weight_variable([filter_size, filter_size, channels, features])
+            w1 = weight_variable([filter_size, filter_size, channels, features], stddev)
         else:
-            w1 = weight_variable([filter_size, filter_size, features//2, features])
+            w1 = weight_variable([filter_size, filter_size, features//2, features], stddev)
             
-        w2 = weight_variable([filter_size, filter_size, features, features])
+        w2 = weight_variable([filter_size, filter_size, features, features], stddev)
         b1 = bias_variable([features])
         b2 = bias_variable([features])
         
@@ -112,14 +113,14 @@ def create_conv_net(x, keep_prob, channels, n_class, layers=2, features_root=32,
     for layer in range(layers-2, -1, -1):
         features = 2**(layer+1)*features_root
         
-        wd = weight_variable_devonc([pool_size, pool_size, features//2, features])
+        wd = weight_variable_devonc([pool_size, pool_size, features//2, features], stddev)
         bd = bias_variable([features//2])
         h_deconv = tf.nn.relu(deconv2d(in_node, wd, pool_size) + bd)
         h_deconv_concat = crop_and_concat(h_convs[layer], h_deconv, [batch_size])
         deconv[layer] = h_deconv_concat
         
-        w1 = weight_variable([filter_size, filter_size, features, features//2])
-        w2 = weight_variable([filter_size, filter_size, features//2, features//2])
+        w1 = weight_variable([filter_size, filter_size, features, features//2], stddev)
+        w2 = weight_variable([filter_size, filter_size, features//2, features//2], stddev)
         b1 = bias_variable([features//2])
         b2 = bias_variable([features//2])
         
@@ -133,7 +134,7 @@ def create_conv_net(x, keep_prob, channels, n_class, layers=2, features_root=32,
         convs.append((conv1, conv2))
 
     # Output Map
-    weight = weight_variable([1, 1, features_root, n_class])
+    weight = weight_variable([1, 1, features_root, n_class], stddev)
     bias = bias_variable([n_class])
     conv = conv2d(in_node, weight, tf.constant(1.0))
     output_map = tf.nn.relu(conv + bias)
@@ -485,7 +486,9 @@ class Trainer(object):
     def store_prediction(self, sess, data_provider, epoch):
         batch_x, batch_y = data_provider(4)
         prediction = sess.run(self.net.predicter, feed_dict={self.net.x: batch_x, self.net.y: batch_y, self.net.keep_prob: 1.})
-        print("Epoch error= {:.1f}%".format(error_rate(prediction, batch_y)))
+        print("Prediction error= {:.1f}%".format(error_rate(prediction, 
+                                                       util.crop_to_shape(batch_y, 
+                                                                          prediction.shape))))
               
         img = util.combine_img_prediction(batch_x, batch_y, prediction)
         util.save_image(img, "%s/epoch_%s.jpg"%(self.prediction_path, epoch))
