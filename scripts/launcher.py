@@ -9,11 +9,11 @@ from __future__ import print_function, division, absolute_import, unicode_litera
 from tf_unet import image_gen
 from tf_unet import unet
 from tf_unet import util
-from PIL import Image
+
 
 if __name__ == '__main__':
-    nx = 572
-    ny = 572
+    nx = 572*2
+    ny = 572*2
     channels = 3
     n_class = 2
      
@@ -23,9 +23,9 @@ if __name__ == '__main__':
     display_step = 2
     restore = False
  
-    generator = image_gen.get_image_gen_rgb(nx, ny)
+    generator = image_gen.get_image_gen_rgb(nx, ny, cnt=20)
     
-    net = unet.Unet(channels=channels, n_class=n_class, layers=2)
+    net = unet.Unet(channels=channels, n_class=n_class, layers=3, features_root=16)
     
     trainer = unet.Trainer(net)
     path = trainer.train(generator, "./unet_trained", 
@@ -40,4 +40,4 @@ if __name__ == '__main__':
      
     print("Testing error rate: {:.2f}%".format(unet.error_rate(prediction, y_test)))
     img = util.combine_img_prediction(x_test, y_test, prediction)
-    Image.fromarray(img).save("prediction.png")
+    util.save_image(img, "prediction.jpg")

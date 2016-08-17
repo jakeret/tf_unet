@@ -7,6 +7,7 @@ author: jakeret
 '''
 from __future__ import print_function, division, absolute_import, unicode_literals
 import numpy as np
+from PIL import Image
 
 def plot_prediction(x_test, y_test, prediction, save=False):
     import matplotlib
@@ -64,4 +65,8 @@ def combine_img_prediction(data, gt, pred):
     img = np.concatenate((to_rgb(crop_to_shape(data, pred.shape).reshape(-1, ny, ch)), 
                           to_rgb(crop_to_shape(gt[..., 1], pred.shape).reshape(-1, ny, 1)), 
                           to_rgb(pred[..., 1].reshape(-1, ny, 1))), axis=1)
-    return img.round().astype(np.uint8)
+    return img
+
+def save_image(img, path):
+    Image.fromarray(img.round().astype(np.uint8)).save(path, 'JPEG', dpi=[300,300], quality=90)
+

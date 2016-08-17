@@ -17,12 +17,11 @@ plateau_max = 2
 r_min = 1
 r_max = 200
 
-def create_image_and_label(nx,ny):
+def create_image_and_label(nx,ny, cnt = 10):
     r_min = 5
     r_max = 50
     border = 92
     sigma = 20
-    cnt = 10
     
     image = np.ones((ny, nx, 1))
     label = np.ones((ny, nx))
@@ -59,14 +58,14 @@ def get_image_gen(nx, ny):
         return X,Y
     return create_batch
 
-def get_image_gen_rgb(nx, ny):
+def get_image_gen_rgb(nx, ny, **kwargs):
     def create_batch(n_image):
             
             X = np.zeros((n_image, nx, ny, 3))
             Y = np.zeros((n_image, nx, ny,2))
             
             for i in range(n_image):
-                x, Y[i,:,:,1] = create_image_and_label(nx,ny)
+                x, Y[i,:,:,1] = create_image_and_label(nx,ny, **kwargs)
                 X[i] = to_rgb(x)
                 Y[i,:,:,0] = 1-Y[i,:,:,1]
                 
