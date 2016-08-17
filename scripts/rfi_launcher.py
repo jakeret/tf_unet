@@ -13,7 +13,7 @@ import glob
 import h5py
 import numpy as np
 
-DATA_ROOT = "../.cache/"
+DATA_ROOT = ".cache/"
 class Generator(object):
     
     def __init__(self, nx, a_min=30, a_max=210):
