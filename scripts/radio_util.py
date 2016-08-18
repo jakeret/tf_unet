@@ -23,6 +23,8 @@ class Generator(object):
         self.file_idx = 0
         self.iter = 0
         
+        assert len(files) > 0, "No training files"
+        
         print("Number of files used: %s"%len(files))
     
     def _read_chunck(self):
