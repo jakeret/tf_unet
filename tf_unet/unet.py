@@ -79,7 +79,8 @@ def create_conv_net(x, keep_prob, channels, n_class, layers=3, features_root=16,
     convs = []
     pools = {}
     deconv = {}
-    h_convs = {}
+    dw_h_convs = {}
+    up_h_convs = {}
     
     stddev = np.sqrt(2 / (filter_size**2 * features_root))
     # down layers
@@ -97,17 +98,17 @@ def create_conv_net(x, keep_prob, channels, n_class, layers=3, features_root=16,
         conv1 = conv2d(in_node, w1, keep_prob)
         tmp_h_conv = tf.nn.relu(conv1 + b1)
         conv2 = conv2d(tmp_h_conv, w2, keep_prob)
-        h_convs[layer] = tf.nn.relu(conv2 + b2)
+        dw_h_convs[layer] = tf.nn.relu(conv2 + b2)
         
         weights.append((w1, w2))
         biases.append((b1, b2))
         convs.append((conv1, conv2))
         
         if layer < layers-1:
-            pools[layer] = max_pool(h_convs[layer], pool_size)
+            pools[layer] = max_pool(dw_h_convs[layer], pool_size)
             in_node = pools[layer]
         
-    in_node = h_convs[layers-1]
+    in_node = dw_h_convs[layers-1]
         
     # up layers
     for layer in range(layers-2, -1, -1):
@@ -116,7 +117,7 @@ def create_conv_net(x, keep_prob, channels, n_class, layers=3, features_root=16,
         wd = weight_variable_devonc([pool_size, pool_size, features//2, features], stddev)
         bd = bias_variable([features//2])
         h_deconv = tf.nn.relu(deconv2d(in_node, wd, pool_size) + bd)
-        h_deconv_concat = crop_and_concat(h_convs[layer], h_deconv, [batch_size])
+        h_deconv_concat = crop_and_concat(dw_h_convs[layer], h_deconv, [batch_size])
         deconv[layer] = h_deconv_concat
         
         w1 = weight_variable([filter_size, filter_size, features, features//2], stddev)
@@ -128,6 +129,7 @@ def create_conv_net(x, keep_prob, channels, n_class, layers=3, features_root=16,
         h_conv = tf.nn.relu(conv1 + b1)
         conv2 = conv2d(h_conv, w2, keep_prob)
         in_node = tf.nn.relu(conv2 + b2)
+        up_h_convs[layer] = in_node
 
         weights.append((w1, w2))
         biases.append((b1, b2))
@@ -138,6 +140,7 @@ def create_conv_net(x, keep_prob, channels, n_class, layers=3, features_root=16,
     bias = bias_variable([n_class])
     conv = conv2d(in_node, weight, tf.constant(1.0))
     output_map = tf.nn.relu(conv + bias)
+    up_h_convs[-1] = output_map
     
     if summaries:
         for i, (c1, c2) in enumerate(convs):
@@ -149,6 +152,13 @@ def create_conv_net(x, keep_prob, channels, n_class, layers=3, features_root=16,
         
         for k in sorted(deconv.keys()):
             tf.image_summary('summary_deconv_concat_%02d'%k, get_image_summary(deconv[k]))
+            
+        for k in sorted(dw_h_convs.keys()):
+            tf.histogram_summary("dw_convolution_%02d"%k + '/activations', dw_h_convs[k])
+
+        for k in sorted(up_h_convs.keys()):
+            tf.histogram_summary("up_convolution_%02d"%k + '/activations', up_h_convs[k])
+            
         
     return output_map
 
