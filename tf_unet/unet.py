@@ -166,12 +166,12 @@ def create_conv_net(x, keep_prob, channels, n_class, layers=3, features_root=16,
 class Unet(object):
     
     def __init__(self, nx=None, ny=None, channels=3, n_class=2, **kwargs):
+        print("Tensorflow version: %s"%tf.__version__)
         self.n_class = n_class
         
         self.x = tf.placeholder("float", shape=[None, nx, ny, channels])
         self.y = tf.placeholder("float", shape=[None, None, None, n_class])
         self.keep_prob = tf.placeholder(tf.float32) #dropout (keep probability)
-#         tf.scalar_summary('dropout_keep_probability',self.keep_prob)
         
         logits = create_conv_net(self.x, self.keep_prob, channels, n_class, **kwargs)
         loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(tf.reshape(logits, [-1, n_class]), 
@@ -179,15 +179,13 @@ class Unet(object):
         
         reg_losses = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
         reg_constant = 0.001  # Choose an appropriate one.
-        self.cost = loss + reg_constant * sum(reg_losses)
         
-#         tf.scalar_summary('cross entropy', self.cost)
-#         self.cost = cross_entropy(self.y, self.net)
-#         self.predicter = pixel_wise_softmax(logits)
+        self.cost = loss + reg_constant * sum(reg_losses)
         self.predicter = pixel_wise_softmax_2(logits)
         self.correct_pred = tf.equal(tf.argmax(self.predicter, 3), tf.argmax(self.y, 3))
         self.accuracy = tf.reduce_mean(tf.cast(self.correct_pred, tf.float32))
         tf.scalar_summary('accuracy', self.accuracy)
+        
 
     def predict(self, model_path, x_test):
         
@@ -275,7 +273,7 @@ class Trainer(object):
                     self.net.restore(sess, ckpt.model_checkpoint_path)
             
             test_x, test_y = data_provider(4)
-            pred_shape = self.store_prediction(sess, test_x, test_y, "start")
+            pred_shape = self.store_prediction(sess, test_x, test_y, "_init")
             
             summary_writer = tf.train.SummaryWriter(output_path, graph=sess.graph)
             
@@ -294,21 +292,21 @@ class Trainer(object):
                     total_loss += loss
 
                 self.output_epoch_stats(epoch, total_loss, training_iters, lr)
-                self.store_prediction(sess, test_x, test_y, epoch)
+                self.store_prediction(sess, test_x, test_y, "epoch_%s"%epoch)
                     
                 save_path = self.net.save(sess, save_path)
             print("Optimization Finished!")
             
             return save_path
         
-    def store_prediction(self, sess, batch_x, batch_y, epoch):
+    def store_prediction(self, sess, batch_x, batch_y, name):
         prediction = sess.run(self.net.predicter, feed_dict={self.net.x: batch_x, self.net.y: batch_y, self.net.keep_prob: 1.})
         print("Prediction error= {:.1f}%".format(error_rate(prediction, 
                                                        util.crop_to_shape(batch_y, 
                                                                           prediction.shape))))
               
         img = util.combine_img_prediction(batch_x, batch_y, prediction)
-        util.save_image(img, "%s/epoch_%s.jpg"%(self.prediction_path, epoch))
+        util.save_image(img, "%s/%s.jpg"%(self.prediction_path, name))
         
         return prediction.shape
     
