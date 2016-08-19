@@ -12,14 +12,14 @@ from tf_unet import util
 import glob
 from scripts.radio_util import Generator
 
-DATA_ROOT = "bleien_data/"
+DATA_ROOT = "./bleien_data/"
 
 if __name__ == '__main__':
     training_iters = 20
     epochs = 100
     dropout = 0.75 # Dropout, probability to keep units
     display_step = 2
-    restore = True
+    restore = False
  
     generator = Generator(600, glob.glob(DATA_ROOT+"*"))
     
@@ -29,7 +29,7 @@ if __name__ == '__main__':
                     features_root=16)
     
     trainer = unet.Trainer(net, momentum=0.2)
-    path = trainer.train(generator, "./unet_trained_rfi_bleien", 
+    path = trainer.train(generator, "../daint_unet_trained_rfi_bleien", 
                          training_iters=training_iters, 
                          epochs=epochs, 
                          dropout=dropout, 

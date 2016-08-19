@@ -32,7 +32,6 @@ class Generator(object):
     
     def _read_chunck(self):
         idx = self.idxs[self.iter]
-        print(self.files[self.file_idx], "idx", idx)
         with h5py.File(self.files[self.file_idx], "r") as fp:
             sl = slice((idx*self.nx), ((idx+1)*self.nx))
             data = fp["data"][:, sl]
