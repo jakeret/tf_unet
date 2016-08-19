@@ -168,17 +168,19 @@ class Trainer(object):
     
     prediction_path = "prediction"
     
-    def __init__(self, net, batch_size=1, momentum=0.9):
+    def __init__(self, net, batch_size=1, momentum=0.9, learning_rate=0.2, decay_rate=0.95):
         self.net = net
         self.batch_size = batch_size
         self.momentum = momentum
+        self.learning_rate = learning_rate
+        self.decay_rate = decay_rate
         
     def _initialize(self, training_iters, output_path, restore):
         global_step = tf.Variable(0)
-        self.learning_rate = tf.train.exponential_decay(learning_rate=0.2, 
+        self.learning_rate = tf.train.exponential_decay(learning_rate=self.learning_rate, 
                                                         global_step=global_step, 
                                                         decay_steps=training_iters,  
-                                                        decay_rate=0.95, 
+                                                        decay_rate=self.decay_rate, 
                                                         staircase=True)
         
         tf.scalar_summary('learning_rate', self.learning_rate)
