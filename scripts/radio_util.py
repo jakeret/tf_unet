@@ -28,7 +28,7 @@ class Generator(object):
     def _read_chunck(self):
         with h5py.File(self.files[self.file_idx], "r") as fp:
             nx = fp["data"].shape[1]
-            idx = np.random.choice(np.arange(nx/self.nx).astype(np.int))
+            idx = np.random.randint(0, nx - self.nx).astype(np.int)
             
             sl = slice((idx*self.nx), ((idx+1)*self.nx))
             data = fp["data"][:, sl]
