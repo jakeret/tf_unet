@@ -15,11 +15,11 @@ from scripts.radio_util import Generator
 DATA_ROOT = "./bleien_data/"
 
 if __name__ == '__main__':
-    training_iters = 20
-    epochs = 100
+    training_iters = 32
+    epochs = 150
     dropout = 0.75 # Dropout, probability to keep units
     display_step = 2
-    restore = False
+    restore = True
  
     generator = Generator(600, glob.glob(DATA_ROOT+"*"))
     
