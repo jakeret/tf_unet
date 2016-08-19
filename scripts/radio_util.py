@@ -20,16 +20,21 @@ class Generator(object):
         self.files = files
         self.a_min = a_min
         self.a_max = a_max
-        self.file_idx = 0
+        self.file_idx = -1
+        self._cylce_file()
+        
         self.iter = 0
+        
         
         assert len(files) > 0, "No training files"
         
         print("Number of files used: %s"%len(files))
     
     def _read_chunck(self):
+        idx = self.idxs[self.iter]
+        print(self.files[self.file_idx], "idx", idx)
         with h5py.File(self.files[self.file_idx], "r") as fp:
-            sl = slice((self.iter*self.nx), ((self.iter+1)*self.nx))
+            sl = slice((idx*self.nx), ((idx+1)*self.nx))
             data = fp["data"][:, sl]
             rfi = fp["mask"][:, sl]
         return data, rfi
@@ -51,11 +56,19 @@ class Generator(object):
         self.file_idx += 1
         if self.file_idx >= len(self.files):
             self.file_idx = 0
+        
+        with h5py.File(self.files[self.file_idx], "r") as fp:
+            nx = fp["data"].shape[1]
+        idxs = np.random.permutation(np.arange(nx/600)).tolist()
+        idxs.append(nx+1)
+        self.idxs = np.array(idxs, dtype=np.int)
 
     def _load_data_and_label(self):
         data, rfi = self._next_chunck()
         nx = data.shape[1]
         ny = data.shape[0]
+        
+        #normalization
         data = np.clip(np.fabs(data), self.a_min, self.a_max)
         train_data = data.reshape(1, ny, nx, 1)
         train_data -= np.amin(data)
