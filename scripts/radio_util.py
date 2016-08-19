@@ -20,19 +20,16 @@ class Generator(object):
         self.files = files
         self.a_min = a_min
         self.a_max = a_max
-        self.file_idx = -1
-        self._cylce_file()
-        
-        self.iter = 0
-        
         
         assert len(files) > 0, "No training files"
-        
         print("Number of files used: %s"%len(files))
+        self._cylce_file()
     
     def _read_chunck(self):
-        idx = self.idxs[self.iter]
         with h5py.File(self.files[self.file_idx], "r") as fp:
+            nx = fp["data"].shape[1]
+            idx = np.random.choice(np.arange(nx/self.nx).astype(np.int))
+            
             sl = slice((idx*self.nx), ((idx+1)*self.nx))
             data = fp["data"][:, sl]
             rfi = fp["mask"][:, sl]
@@ -40,27 +37,17 @@ class Generator(object):
     
     def _next_chunck(self):
         data, rfi = self._read_chunck()
-        self.iter += 1
         nx = data.shape[1]
         while nx < self.nx:
             self._cylce_file()
             data, rfi = self._read_chunck()
             nx = data.shape[1]
-            self.iter += 1
             
         return data, rfi
 
     def _cylce_file(self):
-        self.iter = 0
-        self.file_idx += 1
-        if self.file_idx >= len(self.files):
-            self.file_idx = 0
+        self.file_idx = np.random.choice(len(self.files))
         
-        with h5py.File(self.files[self.file_idx], "r") as fp:
-            nx = fp["data"].shape[1]
-        idxs = np.random.permutation(np.arange(nx/self.nx)).tolist()
-        idxs.append(nx+1)
-        self.idxs = np.array(idxs, dtype=np.int)
 
     def _load_data_and_label(self):
         data, rfi = self._next_chunck()
