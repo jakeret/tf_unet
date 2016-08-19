@@ -12,7 +12,7 @@ from tf_unet import util
 import glob
 from scripts.radio_util import Generator
 
-DATA_ROOT = "bleien_data"
+DATA_ROOT = "bleien_data/"
 
 if __name__ == '__main__':
     training_iters = 20
