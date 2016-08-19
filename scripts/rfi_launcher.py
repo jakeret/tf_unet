@@ -12,14 +12,14 @@ from tf_unet import util
 import glob
 from scripts.radio_util import Generator
 
-DATA_ROOT = ".cache/"
+DATA_ROOT = "bleien_data"
 
 if __name__ == '__main__':
     training_iters = 20
     epochs = 100
     dropout = 0.75 # Dropout, probability to keep units
     display_step = 2
-    restore = False
+    restore = True
  
     generator = Generator(600, glob.glob(DATA_ROOT+"*"))
     
@@ -29,20 +29,20 @@ if __name__ == '__main__':
                     features_root=16)
     
     trainer = unet.Trainer(net, momentum=0.2)
-    path = trainer.train(generator, "../unet_trained", 
+    path = trainer.train(generator, "./unet_trained_rfi_bleien", 
                          training_iters=training_iters, 
                          epochs=epochs, 
                          dropout=dropout, 
                          display_step=display_step, 
                          restore=restore)
      
-    x_test, y_test = generator(4)
+    x_test, y_test = generator(1)
     prediction = net.predict(path, x_test)
      
     print("Testing error rate: {:.2f}%".format(unet.error_rate(prediction, util.crop_to_shape(y_test, prediction.shape))))
     
 #     import numpy as np
-#     np.savetxt("prediction.txt", prediction[..., 1].reshape(-1, prediction.shape[2]))
+#     np.save("prediction", prediction[0, ..., 1])
     
     img = util.combine_img_prediction(x_test, y_test, prediction)
     util.save_image(img, "prediction.jpg")

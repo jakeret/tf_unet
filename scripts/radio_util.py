@@ -59,7 +59,7 @@ class Generator(object):
         
         with h5py.File(self.files[self.file_idx], "r") as fp:
             nx = fp["data"].shape[1]
-        idxs = np.random.permutation(np.arange(nx/600)).tolist()
+        idxs = np.random.permutation(np.arange(nx/self.nx)).tolist()
         idxs.append(nx+1)
         self.idxs = np.array(idxs, dtype=np.int)
 
