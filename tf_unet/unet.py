@@ -7,64 +7,16 @@ author: jakeret
 '''
 from __future__ import print_function, division, absolute_import, unicode_literals
 
-import tensorflow as tf
 import os
 import shutil
 import numpy as np
+
+import tensorflow as tf
+
 from tf_unet import util
+from tf_unet.layers import (weight_variable, weight_variable_devonc, bias_variable, 
+                            conv2d, deconv2d, max_pool, crop_and_concat, pixel_wise_softmax_2)
 
-def weight_variable(shape, stddev=0.1):
-    initial = tf.truncated_normal(shape, stddev=stddev)
-    return tf.Variable(initial)
-
-def weight_variable_devonc(shape, stddev=0.1):
-#     initial = 1.0/float(shape[0]*shape[1])
-    #return tf.Variable(tf.add((np.ones(shape)*initial).astype(float32),tf.truncated_normal(shape, stddev=0.1)))
-    return tf.Variable(tf.truncated_normal(shape, stddev=stddev))
-
-def bias_variable(shape):
-    initial = tf.constant(0.1, shape=shape)
-    return tf.Variable(initial)
-
-def conv2d(x, W,keep_prob_):
-    conv_2d = tf.nn.conv2d(x, W, strides=[1, 1, 1, 1], padding='VALID')
-    return tf.nn.dropout(conv_2d, keep_prob_)
-
-def deconv2d(x, W,stride):
-    x_shape = tf.shape(x)
-    output_shape = tf.pack([x_shape[0], x_shape[1]*2, x_shape[2]*2, x_shape[3]//2])
-    return tf.nn.conv2d_transpose(x, W, output_shape, strides=[1, stride, stride, 1], padding='VALID')
-
-def max_pool(x,n):
-    return tf.nn.max_pool(x, ksize=[1, n, n, 1], strides=[1, n, n, 1], padding='VALID')
-
-def crop_and_concat(x1,x2,output_shape):
-    #x1.set_shape(input_shape)
-#     x1_crop = tf.image.extract_glimpse(x1, [int(output_shape[1]), int(output_shape[2])], np.zeros([output_shape[0],2]), centered=True)
-    offsets = tf.zeros(tf.pack([output_shape[0], 2]), dtype=tf.float32)
-#     size = tf.to_int32(tf.pack([output_shape[1], output_shape[2]]))
-    x2_shape = tf.shape(x2)
-    size = tf.pack((x2_shape[1], x2_shape[2]))
-    x1_crop = tf.image.extract_glimpse(x1, size=size, offsets=offsets, centered=True)
-    #x1_crop = tf.image.extract_glimpse(x1, [tf.shape(x2)[1], tf.shape(x2)[2]],tf.shape(x2)[0])
-    return tf.concat(3, [x1_crop, x2]) 
-
-def pixel_wise_softmax(output_map):
-    exponential_map = tf.exp(output_map)
-    evidence = tf.add(exponential_map,tf.reverse(exponential_map,[False,False,False,True]))
-    return tf.div(exponential_map,evidence, name="pixel_wise_softmax")
-
-def pixel_wise_softmax_2(output_map):
-    exponential_map = tf.exp(output_map)
-    sum_exp = tf.reduce_sum(exponential_map, 3, keep_dims=True)
-    tensor_sum_exp = tf.tile(sum_exp, tf.pack([1, 1, 1, tf.shape(output_map)[3]]))
-    return tf.div(exponential_map,tensor_sum_exp)
-
-
-
-def cross_entropy(y_,output_map):
-    return -tf.reduce_mean(y_*tf.log(tf.clip_by_value(output_map,1e-10,1.0)), name="cross_entropy")
-#     return tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(output_map), reduction_indices=[1]))
 
 def create_conv_net(x, keep_prob, channels, n_class, layers=3, features_root=16, filter_size=3, pool_size=2, summaries=True):
     # Placeholder for the input image
