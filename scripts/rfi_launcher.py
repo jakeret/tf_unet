@@ -6,22 +6,23 @@ Created on Jul 28, 2016
 author: jakeret
 '''
 from __future__ import print_function, division, absolute_import, unicode_literals
+import glob
+import click
+
 from tf_unet import unet
 from tf_unet import util
 
-import glob
 from scripts.radio_util import Generator
 
-DATA_ROOT = "./bleien_data/"
-
-if __name__ == '__main__':
-    training_iters = 32
-    epochs = 150
-    dropout = 0.75 # Dropout, probability to keep units
-    display_step = 2
-    restore = True
- 
-    generator = Generator(600, glob.glob(DATA_ROOT+"*"))
+@click.command()
+@click.option('--data_root', default="./bleien_data")
+@click.option('--output_path', default="./daint_unet_trained_rfi_bleien")
+@click.option('--training_iters', default=32)
+@click.option('--epochs', default=100)
+@click.option('--restore', default=True)
+def launch(data_root, output_path, training_iters, epochs, restore):
+    print("Using data from: %s"%data_root)
+    generator = Generator(600, glob.glob(data_root+"/*"))
     
     net = unet.Unet(channels=generator.channels, 
                     n_class=generator.n_class, 
@@ -29,11 +30,11 @@ if __name__ == '__main__':
                     features_root=16)
     
     trainer = unet.Trainer(net, momentum=0.2)
-    path = trainer.train(generator, "../daint_unet_trained_rfi_bleien", 
+    path = trainer.train(generator, output_path, 
                          training_iters=training_iters, 
                          epochs=epochs, 
-                         dropout=dropout, 
-                         display_step=display_step, 
+                         dropout=0.75, 
+                         display_step=2, 
                          restore=restore)
      
     x_test, y_test = generator(1)
@@ -46,3 +47,7 @@ if __name__ == '__main__':
     
     img = util.combine_img_prediction(x_test, y_test, prediction)
     util.save_image(img, "prediction.jpg")
+
+
+if __name__ == '__main__':
+    launch()
