@@ -15,10 +15,15 @@ import tensorflow as tf
 
 from tf_unet import util
 from tf_unet.layers import (weight_variable, weight_variable_devonc, bias_variable, 
-                            conv2d, deconv2d, max_pool, crop_and_concat, pixel_wise_softmax_2)
+                            conv2d, deconv2d, max_pool, crop_and_concat, pixel_wise_softmax_2,
+                            cross_entropy)
 
 
 def create_conv_net(x, keep_prob, channels, n_class, layers=3, features_root=16, filter_size=3, pool_size=2, summaries=True):
+    print("Layers {layers}, features {features}, filter size {filter_size}x{filter_size}, pool size: {pool_size}x{pool_size}".format(layers=layers,
+                                                                                                           features=features_root,
+                                                                                                           filter_size=filter_size,
+                                                                                                           pool_size=pool_size))
     # Placeholder for the input image
     nx = tf.shape(x)[1]
     ny = tf.shape(x)[2]
@@ -105,11 +110,11 @@ def create_conv_net(x, keep_prob, channels, n_class, layers=3, features_root=16,
         for k in sorted(deconv.keys()):
             tf.image_summary('summary_deconv_concat_%02d'%k, get_image_summary(deconv[k]))
             
-        for k in sorted(dw_h_convs.keys()):
-            tf.histogram_summary("dw_convolution_%02d"%k + '/activations', dw_h_convs[k])
+#         for k in sorted(dw_h_convs.keys()):
+#             tf.histogram_summary("dw_convolution_%02d"%k + '/activations', dw_h_convs[k])
 
-        for k in sorted(up_h_convs.keys()):
-            tf.histogram_summary("up_convolution_%02d"%k + '/activations', up_h_convs[k])
+#         for k in sorted(up_h_convs.keys()):
+#             tf.histogram_summary("up_convolution_%02d"%k + '/activations', up_h_convs[k])
             
         
     return output_map
@@ -128,6 +133,10 @@ class Unet(object):
         logits = create_conv_net(self.x, self.keep_prob, channels, n_class, **kwargs)
         loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(tf.reshape(logits, [-1, n_class]), 
                                                                            tf.reshape(self.y, [-1, n_class])))
+#         
+#         loss = tf.reduce_mean(cross_entropy(tf.reshape(self.y, [-1, n_class]),
+#                                             tf.reshape(pixel_wise_softmax_2(logits), [-1, n_class]), 
+#                                             ))
         
         reg_losses = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
         reg_constant = 0.001  # Choose an appropriate one.
@@ -190,8 +199,13 @@ class Trainer(object):
                                                     momentum=self.momentum).minimize(self.net.cost, 
                                                                                      global_step=global_step)
                                                     
-        #self.optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate, beta1=0.9, beta2=0.999, epsilon=1e-08, use_locking=False, name='Adam').minimize(self.net.cost, 
-        #                                            global_step=global_step)
+#         self.optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate, 
+#                                                 beta1=0.9, 
+#                                                 beta2=0.999, 
+#                                                 epsilon=1e-08, 
+#                                                 use_locking=False, 
+#                                                 name='Adam').minimize(self.net.cost,
+#                                                                       global_step=global_step)
                                                                                      
 
         self.summary_op = tf.merge_all_summaries()        
@@ -216,7 +230,6 @@ class Trainer(object):
         
         init = self._initialize(training_iters, output_path, restore)
         
-        print("Start optimization")
         
         with tf.Session() as sess:
             sess.run(init)
@@ -230,6 +243,7 @@ class Trainer(object):
             pred_shape = self.store_prediction(sess, test_x, test_y, "_init")
             
             summary_writer = tf.train.SummaryWriter(output_path, graph=sess.graph)
+            print("Start optimization")
             
             for epoch in range(epochs):
                 total_loss = 0
@@ -240,6 +254,7 @@ class Trainer(object):
                     _, loss, lr = sess.run((self.optimizer, self.net.cost, self.learning_rate), feed_dict={self.net.x: batch_x,  
                                                                     self.net.y: util.crop_to_shape(batch_y, pred_shape),
                                                                     self.net.keep_prob: dropout})
+                    
                     if step % display_step == 0:
                         self.output_minibatch_stats(sess, summary_writer, step, batch_x, util.crop_to_shape(batch_y, pred_shape))
                         
@@ -254,15 +269,24 @@ class Trainer(object):
             return save_path
         
     def store_prediction(self, sess, batch_x, batch_y, name):
-        prediction = sess.run(self.net.predicter, feed_dict={self.net.x: batch_x, self.net.y: batch_y, self.net.keep_prob: 1.})
-        print("Prediction error= {:.1f}%".format(error_rate(prediction, 
-                                                       util.crop_to_shape(batch_y, 
-                                                                          prediction.shape))))
+        prediction = sess.run(self.net.predicter, feed_dict={self.net.x: batch_x, 
+                                                             self.net.y: batch_y, 
+                                                             self.net.keep_prob: 1.})
+        pred_shape = prediction.shape
+        
+        loss = sess.run(self.net.cost, feed_dict={self.net.x: batch_x, 
+                                                       self.net.y: util.crop_to_shape(batch_y, pred_shape), 
+                                                       self.net.keep_prob: 1.})
+        
+        print("Prediction error= {:.1f}%, loss= {:.4f}".format(error_rate(prediction,
+                                                                          util.crop_to_shape(batch_y,
+                                                                                             prediction.shape)),
+                                                                          loss))
               
         img = util.combine_img_prediction(batch_x, batch_y, prediction)
         util.save_image(img, "%s/%s.jpg"%(self.prediction_path, name))
         
-        return prediction.shape
+        return pred_shape
     
     def output_epoch_stats(self, epoch, total_loss, training_iters, lr):
         print("Epoch {:}, Average loss: {:.4f}, learning rate: {:.4f}".format(epoch, (total_loss / training_iters), lr))
