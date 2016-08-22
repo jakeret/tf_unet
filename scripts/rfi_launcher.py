@@ -20,14 +20,16 @@ from scripts.radio_util import Generator
 @click.option('--training_iters', default=32)
 @click.option('--epochs', default=100)
 @click.option('--restore', default=True)
-def launch(data_root, output_path, training_iters, epochs, restore):
+@click.option('--layers', default=3)
+@click.option('--features_root', default=16)
+def launch(data_root, output_path, training_iters, epochs, restore, layers, features_root):
     print("Using data from: %s"%data_root)
     generator = Generator(600, glob.glob(data_root+"/*"))
     
     net = unet.Unet(channels=generator.channels, 
                     n_class=generator.n_class, 
-                    layers=3, 
-                    features_root=16)
+                    layers=features_root, 
+                    features_root=features_root)
     
     trainer = unet.Trainer(net, momentum=0.2)
     path = trainer.train(generator, output_path, 
