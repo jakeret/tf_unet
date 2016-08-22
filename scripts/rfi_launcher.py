@@ -28,7 +28,7 @@ def launch(data_root, output_path, training_iters, epochs, restore, layers, feat
     
     net = unet.Unet(channels=generator.channels, 
                     n_class=generator.n_class, 
-                    layers=features_root, 
+                    layers=layers, 
                     features_root=features_root)
     
     trainer = unet.Trainer(net, momentum=0.2)
