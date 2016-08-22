@@ -211,14 +211,21 @@ class Trainer(object):
         self.summary_op = tf.merge_all_summaries()        
         init = tf.initialize_all_variables()
         
+        prediction_path = os.path.abspath(self.prediction_path)
+        output_path = os.path.abspath(output_path)
+        
         if not restore:
-            shutil.rmtree(self.prediction_path, ignore_errors=True)
+            print("Removing '{:}''".format(prediction_path))
+            shutil.rmtree(prediction_path, ignore_errors=True)
+            print("Removing '{:}''".format(output_path))
             shutil.rmtree(output_path, ignore_errors=True)
         
-        if not os.path.exists(self.prediction_path):
-            os.mkdir(self.prediction_path)
+        if not os.path.exists(prediction_path):
+            print("Allocating '{:}'".format(prediction_path))
+            os.mkdir(prediction_path)
         
         if not os.path.exists(output_path):
+            print("Allocating '{:}'".format(output_path))
             os.mkdir(output_path)
         
         return init
@@ -272,6 +279,7 @@ class Trainer(object):
         prediction = sess.run(self.net.predicter, feed_dict={self.net.x: batch_x, 
                                                              self.net.y: batch_y, 
                                                              self.net.keep_prob: 1.})
+#         print(prediction[0, ..., 1])
         pred_shape = prediction.shape
         
         loss = sess.run(self.net.cost, feed_dict={self.net.x: batch_x, 
