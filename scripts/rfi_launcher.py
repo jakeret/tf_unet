@@ -13,6 +13,15 @@ from tf_unet import unet
 from tf_unet import util
 
 from scripts.radio_util import Generator
+import os
+
+def create_training_path(output_path):
+    idx = 0
+    path = os.path.join(output_path, "run_{:03d}".format(idx))
+    while os.path.exists(path):
+        idx += 1
+        path = os.path.join(output_path, "run_{:03d}".format(idx))
+    return path
 
 @click.command()
 @click.option('--data_root', default="./bleien_data")
@@ -20,11 +29,11 @@ from scripts.radio_util import Generator
 @click.option('--training_iters', default=32)
 @click.option('--epochs', default=100)
 @click.option('--restore', default=False)
-@click.option('--layers', default=3)
-@click.option('--features_root', default=16)
+@click.option('--layers', default=5)
+@click.option('--features_root', default=64)
 def launch(data_root, output_path, training_iters, epochs, restore, layers, features_root):
     print("Using data from: %s"%data_root)
-    generator = Generator(2400, glob.glob(data_root+"/*"))
+    generator = Generator(600, glob.glob(data_root+"/*"))
     
     net = unet.Unet(channels=generator.channels, 
                     n_class=generator.n_class, 
@@ -32,11 +41,12 @@ def launch(data_root, output_path, training_iters, epochs, restore, layers, feat
                     features_root=features_root
                     )
     
+    path = output_path if restore else create_training_path(output_path)
     trainer = unet.Trainer(net, momentum=0.2)
-    path = trainer.train(generator, output_path, 
+    path = trainer.train(generator, path, 
                          training_iters=training_iters, 
                          epochs=epochs, 
-                         dropout=0.75, 
+                         dropout=0.5, 
                          display_step=2, 
                          restore=restore)
      
