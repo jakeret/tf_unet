@@ -10,6 +10,7 @@ from __future__ import print_function, division, absolute_import, unicode_litera
 import os
 import shutil
 import numpy as np
+from collections import OrderedDict
 
 import tensorflow as tf
 
@@ -34,15 +35,15 @@ def create_conv_net(x, keep_prob, channels, n_class, layers=3, features_root=16,
     weights = []
     biases = []
     convs = []
-    pools = {}
-    deconv = {}
-    dw_h_convs = {}
-    up_h_convs = {}
+    pools = OrderedDict()
+    deconv = OrderedDict()
+    dw_h_convs = OrderedDict()
+    up_h_convs = OrderedDict()
     
-    stddev = np.sqrt(2 / (filter_size**2 * features_root))
     # down layers
     for layer in range(0, layers):
         features = 2**layer*features_root
+        stddev = np.sqrt(2 / (filter_size**2 * features))
         if layer == 0:
             w1 = weight_variable([filter_size, filter_size, channels, features], stddev)
         else:
@@ -70,6 +71,7 @@ def create_conv_net(x, keep_prob, channels, n_class, layers=3, features_root=16,
     # up layers
     for layer in range(layers-2, -1, -1):
         features = 2**(layer+1)*features_root
+        stddev = np.sqrt(2 / (filter_size**2 * features))
         
         wd = weight_variable_devonc([pool_size, pool_size, features//2, features], stddev)
         bd = bias_variable([features//2])
@@ -97,27 +99,36 @@ def create_conv_net(x, keep_prob, channels, n_class, layers=3, features_root=16,
     bias = bias_variable([n_class])
     conv = conv2d(in_node, weight, tf.constant(1.0))
     output_map = tf.nn.relu(conv + bias)
-    up_h_convs[-1] = output_map
+    up_h_convs["out"] = output_map
     
     if summaries:
         for i, (c1, c2) in enumerate(convs):
             tf.image_summary('summary_conv_%02d_01'%i, get_image_summary(c1))
             tf.image_summary('summary_conv_%02d_02'%i, get_image_summary(c2))
             
-        for k in sorted(pools.keys()):
+        for k in pools.keys():
             tf.image_summary('summary_pool_%02d'%k, get_image_summary(pools[k]))
         
-        for k in sorted(deconv.keys()):
+        for k in deconv.keys():
             tf.image_summary('summary_deconv_concat_%02d'%k, get_image_summary(deconv[k]))
             
-#         for k in sorted(dw_h_convs.keys()):
-#             tf.histogram_summary("dw_convolution_%02d"%k + '/activations', dw_h_convs[k])
+        for k in dw_h_convs.keys():
+            tf.histogram_summary("dw_convolution_%02d"%k + '/activations', dw_h_convs[k])
 
-#         for k in sorted(up_h_convs.keys()):
-#             tf.histogram_summary("up_convolution_%02d"%k + '/activations', up_h_convs[k])
+        for k in up_h_convs.keys():
+            tf.histogram_summary("up_convolution_%s"%k + '/activations', up_h_convs[k])
             
+    variables = []
+    for w1,w2 in weights:
+        variables.append(w1)
+        variables.append(w2)
         
-    return output_map
+    for b1,b2 in biases:
+        variables.append(b1)
+        variables.append(b2)
+
+    
+    return output_map, variables
 
 
 class Unet(object):
@@ -130,18 +141,26 @@ class Unet(object):
         self.y = tf.placeholder("float", shape=[None, None, None, n_class])
         self.keep_prob = tf.placeholder(tf.float32) #dropout (keep probability)
         
-        logits = create_conv_net(self.x, self.keep_prob, channels, n_class, **kwargs)
+        logits, self.variables = create_conv_net(self.x, self.keep_prob, channels, n_class, **kwargs)
+        
+        
         loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(tf.reshape(logits, [-1, n_class]), 
                                                                            tf.reshape(self.y, [-1, n_class])))
-#         
-#         loss = tf.reduce_mean(cross_entropy(tf.reshape(self.y, [-1, n_class]),
-#                                             tf.reshape(pixel_wise_softmax_2(logits), [-1, n_class]), 
-#                                             ))
+        self.gradients_node = tf.gradients(loss, self.variables)
+         
+        self.cross_entropy = tf.reduce_mean(cross_entropy(tf.reshape(self.y, [-1, n_class]),
+                                            tf.reshape(pixel_wise_softmax_2(logits), [-1, n_class]), 
+                                            ))
+        tf.scalar_summary('cross_entropy', self.cross_entropy)
         
-        reg_losses = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
+#         reg_losses = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
         reg_constant = 0.001  # Choose an appropriate one.
         
-        self.cost = loss + reg_constant * sum(reg_losses)
+        regularizers = sum([tf.nn.l2_loss(variable) for variable in self.variables])
+        
+        
+        self.cost = loss + reg_constant * regularizers
+        
         self.predicter = pixel_wise_softmax_2(logits)
         self.correct_pred = tf.equal(tf.argmax(self.predicter, 3), tf.argmax(self.y, 3))
         self.accuracy = tf.reduce_mean(tf.cast(self.correct_pred, tf.float32))
@@ -195,6 +214,9 @@ class Trainer(object):
         tf.scalar_summary('learning_rate', self.learning_rate)
         tf.scalar_summary('loss', self.net.cost)
         
+        self.norm_gradients_node = tf.Variable(tf.constant(0.0, shape=[len(self.net.gradients_node)]))
+        tf.histogram_summary('norm_grads', self.norm_gradients_node)
+        
         self.optimizer = tf.train.MomentumOptimizer(learning_rate=self.learning_rate, 
                                                     momentum=self.momentum).minimize(self.net.cost, 
                                                                                      global_step=global_step)
@@ -215,18 +237,18 @@ class Trainer(object):
         output_path = os.path.abspath(output_path)
         
         if not restore:
-            print("Removing '{:}''".format(prediction_path))
+            print("Removing '{:}'".format(prediction_path))
             shutil.rmtree(prediction_path, ignore_errors=True)
-            print("Removing '{:}''".format(output_path))
+            print("Removing '{:}'".format(output_path))
             shutil.rmtree(output_path, ignore_errors=True)
         
         if not os.path.exists(prediction_path):
             print("Allocating '{:}'".format(prediction_path))
-            os.mkdir(prediction_path)
+            os.makedirs(prediction_path)
         
         if not os.path.exists(output_path):
             print("Allocating '{:}'".format(output_path))
-            os.mkdir(output_path)
+            os.makedirs(output_path)
         
         return init
 
@@ -252,15 +274,24 @@ class Trainer(object):
             summary_writer = tf.train.SummaryWriter(output_path, graph=sess.graph)
             print("Start optimization")
             
+            avg_gradients = None
             for epoch in range(epochs):
                 total_loss = 0
                 for step in range((epoch*training_iters), ((epoch+1)*training_iters)):
                     batch_x, batch_y = data_provider(self.batch_size)
                      
                     # Run optimization op (backprop)
-                    _, loss, lr = sess.run((self.optimizer, self.net.cost, self.learning_rate), feed_dict={self.net.x: batch_x,  
+                    _, loss, lr, gradients = sess.run((self.optimizer, self.net.cost, self.learning_rate, self.net.gradients_node), feed_dict={self.net.x: batch_x,  
                                                                     self.net.y: util.crop_to_shape(batch_y, pred_shape),
                                                                     self.net.keep_prob: dropout})
+
+                    if avg_gradients is None:
+                        avg_gradients = [np.zeros_like(gradient) for gradient in gradients]
+                    for i in range(len(gradients)):
+                        avg_gradients[i] = (avg_gradients[i] * (1.0 - (1.0 / (step+1)))) + (gradients[i] / (step+1))
+                        
+                    norm_gradients = [np.linalg.norm(gradient) for gradient in avg_gradients]
+                    self.norm_gradients_node.assign(norm_gradients).eval()
                     
                     if step % display_step == 0:
                         self.output_minibatch_stats(sess, summary_writer, step, batch_x, util.crop_to_shape(batch_y, pred_shape))
