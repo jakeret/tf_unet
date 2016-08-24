@@ -21,6 +21,18 @@ from tf_unet.layers import (weight_variable, weight_variable_devonc, bias_variab
 
 
 def create_conv_net(x, keep_prob, channels, n_class, layers=3, features_root=16, filter_size=3, pool_size=2, summaries=True):
+    """
+    Creates a new convolutional unet for the given parametrization.
+    :param x: input tensor, shape [?,nx,ny,channels]
+    :param keep_prob: dropout probability tensor
+    :param channels: number of channels in the input image
+    :param n_class: number of output labels
+    :param layers: number of layers in the net
+    :param features_root: number of features in the first layer
+    :param filter_size: size of the convolution filter
+    :param pool_size: size of the max pooling operation
+    :param summaries: Flag if summaries should be created
+    """
     print("Layers {layers}, features {features}, filter size {filter_size}x{filter_size}, pool size: {pool_size}x{pool_size}".format(layers=layers,
                                                                                                            features=features_root,
                                                                                                            filter_size=filter_size,
@@ -40,6 +52,8 @@ def create_conv_net(x, keep_prob, channels, n_class, layers=3, features_root=16,
     dw_h_convs = OrderedDict()
     up_h_convs = OrderedDict()
     
+    in_size = 1000
+    size = in_size
     # down layers
     for layer in range(0, layers):
         features = 2**layer*features_root
@@ -62,9 +76,11 @@ def create_conv_net(x, keep_prob, channels, n_class, layers=3, features_root=16,
         biases.append((b1, b2))
         convs.append((conv1, conv2))
         
+        size -= 4
         if layer < layers-1:
             pools[layer] = max_pool(dw_h_convs[layer], pool_size)
             in_node = pools[layer]
+            size /= 2
         
     in_node = dw_h_convs[layers-1]
         
@@ -93,6 +109,9 @@ def create_conv_net(x, keep_prob, channels, n_class, layers=3, features_root=16,
         weights.append((w1, w2))
         biases.append((b1, b2))
         convs.append((conv1, conv2))
+        
+        size *= 2
+        size -= 4
 
     # Output Map
     weight = weight_variable([1, 1, features_root, n_class], stddev)
@@ -128,10 +147,17 @@ def create_conv_net(x, keep_prob, channels, n_class, layers=3, features_root=16,
         variables.append(b2)
 
     
-    return output_map, variables
+    return output_map, variables, int(in_size - size)
 
 
 class Unet(object):
+    """
+    A unet implementation
+    :param nx: (optional) size of input image in x
+    :param ny: (optional) size of input image in x
+    :param channels: (option) number of channels in the input image
+    :param n_class: (option) number of output labels
+    """
     
     def __init__(self, nx=None, ny=None, channels=3, n_class=2, **kwargs):
         print("Tensorflow version: %s"%tf.__version__)
@@ -141,7 +167,7 @@ class Unet(object):
         self.y = tf.placeholder("float", shape=[None, None, None, n_class])
         self.keep_prob = tf.placeholder(tf.float32) #dropout (keep probability)
         
-        logits, self.variables = create_conv_net(self.x, self.keep_prob, channels, n_class, **kwargs)
+        logits, self.variables, self.offset = create_conv_net(self.x, self.keep_prob, channels, n_class, **kwargs)
         
         
         loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(tf.reshape(logits, [-1, n_class]), 
@@ -168,6 +194,12 @@ class Unet(object):
         
 
     def predict(self, model_path, x_test):
+        """
+        Uses the model to create a prediction for the given data
+        :param model_path: path to the model checkpoint to restore
+        :param x_test: Data to predict on. Shape [n, nx, ny, channels]
+        :returns prediction: The unet prediction Shape [n, px, py, labels] (px=nx-self.offset/2) 
+        """
         
         init = tf.initialize_all_variables()
         with tf.Session() as sess:
@@ -183,16 +215,36 @@ class Unet(object):
         return prediction
     
     def save(self, sess, model_path):
+        """
+        Saves the current session to a checkpoint
+        :param sess: current session
+        :param model_path: path to file system location
+        """
+        
         saver = tf.train.Saver()
         save_path = saver.save(sess, model_path)
         return save_path
     
     def restore(self, sess, model_path):
+        """
+        Restores a session from a checkpoint
+        :param sess: current session instance
+        :param model_path: path to file system checkpoint location
+        """
+        
         saver = tf.train.Saver()
         saver.restore(sess, model_path)
         print("Model restored from file: %s" % model_path)
 
 class Trainer(object):
+    """
+    Trains a unet instance
+    :param net: the unet instance to train
+    :param batch_size: size of training batch
+    :param momentum: momentum for momentum optimzer
+    :param learning_rate: initial learning rate 
+    :param decay_rate: decay of exponentially decaying learning rate
+    """
     
     prediction_path = "prediction"
     
@@ -253,6 +305,16 @@ class Trainer(object):
         return init
 
     def train(self, data_provider, output_path, training_iters=10, epochs=100, dropout=0.75, display_step=1, restore=False):
+        """
+        Lauches the training process
+        :param data_provider: callable returning training and verification data
+        :param output_path: path where to store checkpoints
+        :param training_iters: number of training mini batch iteration
+        :param epochs: number of epochs
+        :param dropout: dropout probability
+        :param display_step: number of steps till outputting stats
+        :param restore: Flag if previous model should be restored 
+        """
         save_path = os.path.join(output_path, "model.cpkt")
         if epochs == 0:
             return save_path
