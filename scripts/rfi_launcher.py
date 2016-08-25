@@ -6,6 +6,7 @@ Created on Jul 28, 2016
 author: jakeret
 '''
 from __future__ import print_function, division, absolute_import, unicode_literals
+import os
 import glob
 import click
 
@@ -13,7 +14,6 @@ from tf_unet import unet
 from tf_unet import util
 
 from scripts.radio_util import Generator
-import os
 
 def create_training_path(output_path):
     idx = 0
@@ -38,7 +38,9 @@ def launch(data_root, output_path, training_iters, epochs, restore, layers, feat
     net = unet.Unet(channels=generator.channels, 
                     n_class=generator.n_class, 
                     layers=layers, 
-                    features_root=features_root
+                    features_root=features_root,
+                    add_regularizers=True,
+#                     filter_size=5
                     )
     
     path = output_path if restore else create_training_path(output_path)
