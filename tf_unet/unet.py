@@ -159,9 +159,11 @@ class Unet(object):
     :param n_class: (option) number of output labels
     """
     
-    def __init__(self, nx=None, ny=None, channels=3, n_class=2, **kwargs):
-        print("Tensorflow version: %s"%tf.__version__)
+    def __init__(self, nx=None, ny=None, channels=3, n_class=2, add_regularizers=False, **kwargs):
+        tf.reset_default_graph()
+        
         self.n_class = n_class
+        self.summaries = kwargs.get("summaries", True)
         
         self.x = tf.placeholder("float", shape=[None, nx, ny, channels])
         self.y = tf.placeholder("float", shape=[None, None, None, n_class])
@@ -177,20 +179,16 @@ class Unet(object):
         self.cross_entropy = tf.reduce_mean(cross_entropy(tf.reshape(self.y, [-1, n_class]),
                                             tf.reshape(pixel_wise_softmax_2(logits), [-1, n_class]), 
                                             ))
-        tf.scalar_summary('cross_entropy', self.cross_entropy)
+        self.cost = loss
         
-#         reg_losses = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
-        reg_constant = 0.001  # Choose an appropriate one.
-        
-        regularizers = sum([tf.nn.l2_loss(variable) for variable in self.variables])
-        
-        
-        self.cost = loss + reg_constant * regularizers
+        if add_regularizers:
+            reg_constant = 0.001  # Choose an appropriate one.
+            regularizers = sum([tf.nn.l2_loss(variable) for variable in self.variables])
+            self.cost += (reg_constant * regularizers)
         
         self.predicter = pixel_wise_softmax_2(logits)
         self.correct_pred = tf.equal(tf.argmax(self.predicter, 3), tf.argmax(self.y, 3))
         self.accuracy = tf.reduce_mean(tf.cast(self.correct_pred, tf.float32))
-        tf.scalar_summary('accuracy', self.accuracy)
         
 
     def predict(self, model_path, x_test):
@@ -262,12 +260,17 @@ class Trainer(object):
                                                         decay_steps=training_iters,  
                                                         decay_rate=self.decay_rate, 
                                                         staircase=True)
-        
         tf.scalar_summary('learning_rate', self.learning_rate)
-        tf.scalar_summary('loss', self.net.cost)
         
         self.norm_gradients_node = tf.Variable(tf.constant(0.0, shape=[len(self.net.gradients_node)]))
-        tf.histogram_summary('norm_grads', self.norm_gradients_node)
+        
+        if self.net.summaries:
+            tf.histogram_summary('norm_grads', self.norm_gradients_node)
+
+        tf.scalar_summary('loss', self.net.cost)
+        tf.scalar_summary('cross_entropy', self.net.cross_entropy)
+        tf.scalar_summary('accuracy', self.net.accuracy)
+
         
         self.optimizer = tf.train.MomentumOptimizer(learning_rate=self.learning_rate, 
                                                     momentum=self.momentum).minimize(self.net.cost, 
@@ -379,7 +382,7 @@ class Trainer(object):
                                                        self.net.y: util.crop_to_shape(batch_y, pred_shape), 
                                                        self.net.keep_prob: 1.})
         
-        print("Prediction error= {:.1f}%, loss= {:.4f}".format(error_rate(prediction,
+        print("Verification error= {:.1f}%, loss= {:.4f}".format(error_rate(prediction,
                                                                           util.crop_to_shape(batch_y,
                                                                                              prediction.shape)),
                                                                           loss))
