@@ -155,11 +155,12 @@ class Unet(object):
     A unet implementation
     :param nx: (optional) size of input image in x
     :param ny: (optional) size of input image in x
-    :param channels: (option) number of channels in the input image
-    :param n_class: (option) number of output labels
+    :param channels: (optional) number of channels in the input image
+    :param n_class: (optional) number of output labels
+    :param add_regularizers: (optional) if true L2 regularizers are added to the loss function
     """
     
-    def __init__(self, nx=None, ny=None, channels=3, n_class=2, add_regularizers=False, **kwargs):
+    def __init__(self, nx=None, ny=None, channels=3, n_class=2, add_regularizers=True, **kwargs):
         tf.reset_default_graph()
         
         self.n_class = n_class
