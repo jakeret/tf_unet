@@ -8,23 +8,25 @@ author: jakeret
 from __future__ import print_function, division, absolute_import, unicode_literals
 
 import numpy as np
+from scipy.ndimage import gaussian_filter
 import h5py
 
 class Generator(object):
     channels = 1
     n_class = 3
     
-    def __init__(self, nx, path, a_min=0, a_max=20):
+    def __init__(self, nx, path, a_min=0, a_max=20, sigma=1):
         self.nx = nx
         self.path = path
         self.a_min = a_min
         self.a_max = a_max
+        self.sigma = sigma
         
         self._load_data()
         
     def _load_data(self):
         with h5py.File(self.path, "r") as fp:
-            self.image = fp["image"].value
+            self.image = gaussian_filter(fp["image"].value, self.sigma)
             self.gal_map = fp["segmaps/galaxy"].value
             self.star_map = fp["segmaps/star"].value
 
