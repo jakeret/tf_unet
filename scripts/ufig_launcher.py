@@ -23,7 +23,7 @@ def create_training_path(output_path):
     return path
 
 @click.command()
-@click.option('--data_root', default="./ufig_images/1")
+@click.option('--data_root', default="./ufig_images/1.h5")
 @click.option('--output_path', default="./unet_trained_ufig")
 @click.option('--training_iters', default=20)
 @click.option('--epochs', default=10)

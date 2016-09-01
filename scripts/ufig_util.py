@@ -8,24 +8,25 @@ author: jakeret
 from __future__ import print_function, division, absolute_import, unicode_literals
 
 import numpy as np
-from astropy.io import fits
+import h5py
 
 class Generator(object):
     channels = 1
     n_class = 3
     
-    def __init__(self, nx, root_path, a_min=0, a_max=20):
+    def __init__(self, nx, path, a_min=0, a_max=20):
         self.nx = nx
-        self.root_path = root_path
+        self.path = path
         self.a_min = a_min
         self.a_max = a_max
         
         self._load_data()
         
     def _load_data(self):
-        self.image = fits.getdata(self.root_path + ".fits")
-        self.gal_map = fits.getdata(self.root_path + ".catalog_galaxy_seg.fits")
-        self.star_map = fits.getdata(self.root_path + ".catalog_star_seg.fits")
+        with h5py.File(self.path, "r") as fp:
+            self.image = fp["image"].value
+            self.gal_map = fp["segmaps/galaxy"].value
+            self.star_map = fp["segmaps/star"].value
 
     def _transpose_3d(self, a):
         return np.stack([a[..., i].T for i in range(a.shape[2])], axis=2)
