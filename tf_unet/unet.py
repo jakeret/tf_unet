@@ -158,9 +158,10 @@ class Unet(object):
     :param channels: (optional) number of channels in the input image
     :param n_class: (optional) number of output labels
     :param add_regularizers: (optional) if true L2 regularizers are added to the loss function
+    :param class_weights: (optional) weights for the different classes in case of multi-class imbalance
     """
     
-    def __init__(self, nx=None, ny=None, channels=3, n_class=2, add_regularizers=True, **kwargs):
+    def __init__(self, nx=None, ny=None, channels=3, n_class=2, add_regularizers=True, class_weights=None, **kwargs):
         tf.reset_default_graph()
         
         self.n_class = n_class
@@ -172,9 +173,14 @@ class Unet(object):
         
         logits, self.variables, self.offset = create_conv_net(self.x, self.keep_prob, channels, n_class, **kwargs)
         
-        
-        loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(tf.reshape(logits, [-1, n_class]), 
-                                                                           tf.reshape(self.y, [-1, n_class])))
+        if class_weights is not None:
+            class_weights = tf.constant(np.array(class_weights, dtype=np.float32))
+            weighted_logits = tf.mul(tf.reshape(logits, [-1, n_class]), class_weights)
+            loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(weighted_logits, tf.reshape(self.y, [-1, n_class])))
+            
+        else:
+            loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(tf.reshape(logits, [-1, n_class]), 
+                                                                               tf.reshape(self.y, [-1, n_class])))
         self.gradients_node = tf.gradients(loss, self.variables)
          
         self.cross_entropy = tf.reduce_mean(cross_entropy(tf.reshape(self.y, [-1, n_class]),
@@ -240,28 +246,44 @@ class Trainer(object):
     Trains a unet instance
     :param net: the unet instance to train
     :param batch_size: size of training batch
-    :param momentum: momentum for momentum optimzer
-    :param learning_rate: initial learning rate 
-    :param decay_rate: decay of exponentially decaying learning rate
+    :param optimizer: (optional) name of the optimizer to use (momentum or adam)
+    :param opt_kwargs: (optional) kwargs passed to the learning rate (momentum opt) and to the optimizer
     """
     
     prediction_path = "prediction"
     
-    def __init__(self, net, batch_size=1, momentum=0.9, learning_rate=0.2, decay_rate=0.95):
+    def __init__(self, net, batch_size=1, optimizer="momentum", opt_kwargs={}):
         self.net = net
         self.batch_size = batch_size
-        self.momentum = momentum
-        self.learning_rate = learning_rate
-        self.decay_rate = decay_rate
+        self.optimizer = optimizer
+        self.opt_kwargs = opt_kwargs
+        
+    def _get_optimizer(self, training_iters, global_step):
+        if self.optimizer == "momentum":
+            learning_rate = self.opt_kwargs.pop("learning_rate", 0.2)
+            decay_rate = self.opt_kwargs.pop("decay_rate", 0.95)
+            
+            self.learning_rate_node = tf.train.exponential_decay(learning_rate=learning_rate, 
+                                                        global_step=global_step, 
+                                                        decay_steps=training_iters,  
+                                                        decay_rate=decay_rate, 
+                                                        staircase=True)
+            
+            optimizer = tf.train.MomentumOptimizer(learning_rate=self.learning_rate_node, 
+                                                   **self.opt_kwargs).minimize(self.net.cost, 
+                                                                                global_step=global_step)
+        elif self.optimizer == "adam":
+            learning_rate = self.opt_kwargs.pop("learning_rate", 0.001)
+            self.learning_rate_node = tf.Variable(learning_rate)
+            
+            optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate_node, 
+                                               **self.opt_kwargs).minimize(self.net.cost,
+                                                                     global_step=global_step)
+        
+        return optimizer
         
     def _initialize(self, training_iters, output_path, restore):
         global_step = tf.Variable(0)
-        self.learning_rate = tf.train.exponential_decay(learning_rate=self.learning_rate, 
-                                                        global_step=global_step, 
-                                                        decay_steps=training_iters,  
-                                                        decay_rate=self.decay_rate, 
-                                                        staircase=True)
-        tf.scalar_summary('learning_rate', self.learning_rate)
         
         self.norm_gradients_node = tf.Variable(tf.constant(0.0, shape=[len(self.net.gradients_node)]))
         
@@ -272,19 +294,8 @@ class Trainer(object):
         tf.scalar_summary('cross_entropy', self.net.cross_entropy)
         tf.scalar_summary('accuracy', self.net.accuracy)
 
-        
-        self.optimizer = tf.train.MomentumOptimizer(learning_rate=self.learning_rate, 
-                                                    momentum=self.momentum).minimize(self.net.cost, 
-                                                                                     global_step=global_step)
-                                                    
-#         self.optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate, 
-#                                                 beta1=0.9, 
-#                                                 beta2=0.999, 
-#                                                 epsilon=1e-08, 
-#                                                 use_locking=False, 
-#                                                 name='Adam').minimize(self.net.cost,
-#                                                                       global_step=global_step)
-                                                                                     
+        self.optimizer = self._get_optimizer(training_iters, global_step)
+        tf.scalar_summary('learning_rate', self.learning_rate_node)
 
         self.summary_op = tf.merge_all_summaries()        
         init = tf.initialize_all_variables()
@@ -325,7 +336,6 @@ class Trainer(object):
         
         init = self._initialize(training_iters, output_path, restore)
         
-        
         with tf.Session() as sess:
             sess.run(init)
             
@@ -347,9 +357,10 @@ class Trainer(object):
                     batch_x, batch_y = data_provider(self.batch_size)
                      
                     # Run optimization op (backprop)
-                    _, loss, lr, gradients = sess.run((self.optimizer, self.net.cost, self.learning_rate, self.net.gradients_node), feed_dict={self.net.x: batch_x,  
-                                                                    self.net.y: util.crop_to_shape(batch_y, pred_shape),
-                                                                    self.net.keep_prob: dropout})
+                    _, loss, lr, gradients = sess.run((self.optimizer, self.net.cost, self.learning_rate_node, self.net.gradients_node), 
+                                                      feed_dict={self.net.x: batch_x,
+                                                                 self.net.y: util.crop_to_shape(batch_y, pred_shape),
+                                                                 self.net.keep_prob: dropout})
 
                     if avg_gradients is None:
                         avg_gradients = [np.zeros_like(gradient) for gradient in gradients]
