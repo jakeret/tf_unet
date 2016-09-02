@@ -39,8 +39,6 @@ coverage:
 	open htmlcov/index.html
 
 docs:
-	rm -f docs/tf_unet.rst
-	rm -f docs/modules.rst
 	sphinx-apidoc -o docs/ tf_unet
 	$(MAKE) -C docs clean
 	$(MAKE) -C docs html

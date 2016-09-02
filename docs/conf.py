@@ -22,6 +22,13 @@ cwd = os.getcwd()
 parent = os.path.dirname(cwd)
 sys.path.insert(0, parent)
 
+import mock
+ 
+MOCK_MODULES = ['numpy', 'tensorflow']
+for mod_name in MOCK_MODULES:
+    sys.modules[mod_name] = mock.Mock()
+
+
 import tf_unet
 
 # -- General configuration -----------------------------------------------------
