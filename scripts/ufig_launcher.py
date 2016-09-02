@@ -34,7 +34,7 @@ def launch(data_root, output_path, training_iters, epochs, restore, layers, feat
     generator = Generator(572, data_root)
     
     data, label = generator(1)
-    weights = (1/3) / (label.sum(axis=2).sum(axis=1).sum(axis=0) / data.size)
+    weights = None#(1/3) / (label.sum(axis=2).sum(axis=1).sum(axis=0) / data.size)
     
     net = unet.Unet(channels=generator.channels, 
                     n_class=generator.n_class, 
