@@ -23,6 +23,7 @@ from tf_unet.layers import (weight_variable, weight_variable_devonc, bias_variab
 def create_conv_net(x, keep_prob, channels, n_class, layers=3, features_root=16, filter_size=3, pool_size=2, summaries=True):
     """
     Creates a new convolutional unet for the given parametrization.
+    
     :param x: input tensor, shape [?,nx,ny,channels]
     :param keep_prob: dropout probability tensor
     :param channels: number of channels in the input image
@@ -33,6 +34,7 @@ def create_conv_net(x, keep_prob, channels, n_class, layers=3, features_root=16,
     :param pool_size: size of the max pooling operation
     :param summaries: Flag if summaries should be created
     """
+    
     print("Layers {layers}, features {features}, filter size {filter_size}x{filter_size}, pool size: {pool_size}x{pool_size}".format(layers=layers,
                                                                                                            features=features_root,
                                                                                                            filter_size=filter_size,
@@ -153,6 +155,7 @@ def create_conv_net(x, keep_prob, channels, n_class, layers=3, features_root=16,
 class Unet(object):
     """
     A unet implementation
+    
     :param nx: (optional) size of input image in x
     :param ny: (optional) size of input image in x
     :param channels: (optional) number of channels in the input image
@@ -201,6 +204,7 @@ class Unet(object):
     def predict(self, model_path, x_test):
         """
         Uses the model to create a prediction for the given data
+        
         :param model_path: path to the model checkpoint to restore
         :param x_test: Data to predict on. Shape [n, nx, ny, channels]
         :returns prediction: The unet prediction Shape [n, px, py, labels] (px=nx-self.offset/2) 
@@ -222,6 +226,7 @@ class Unet(object):
     def save(self, sess, model_path):
         """
         Saves the current session to a checkpoint
+        
         :param sess: current session
         :param model_path: path to file system location
         """
@@ -233,6 +238,7 @@ class Unet(object):
     def restore(self, sess, model_path):
         """
         Restores a session from a checkpoint
+        
         :param sess: current session instance
         :param model_path: path to file system checkpoint location
         """
@@ -244,6 +250,7 @@ class Unet(object):
 class Trainer(object):
     """
     Trains a unet instance
+    
     :param net: the unet instance to train
     :param batch_size: size of training batch
     :param optimizer: (optional) name of the optimizer to use (momentum or adam)
@@ -322,6 +329,7 @@ class Trainer(object):
     def train(self, data_provider, output_path, training_iters=10, epochs=100, dropout=0.75, display_step=1, restore=False):
         """
         Lauches the training process
+        
         :param data_provider: callable returning training and verification data
         :param output_path: path where to store checkpoints
         :param training_iters: number of training mini batch iteration
@@ -425,7 +433,10 @@ class Trainer(object):
 
 
 def error_rate(predictions, labels):
-    """Return the error rate based on dense predictions and 1-hot labels."""
+    """
+    Return the error rate based on dense predictions and 1-hot labels.
+    """
+    
     return 100.0 - (
         100.0 *
         np.sum(np.argmax(predictions, 3) == np.argmax(labels, 3)) /
@@ -433,7 +444,10 @@ def error_rate(predictions, labels):
 
 
 def get_image_summary(img, idx=0):
-    """Make an image summary for 4d tensor image with index idx"""
+    """
+    Make an image summary for 4d tensor image with index idx
+    """
+    
     V = tf.slice(img, (0, 0, 0, idx), (1, -1, -1, 1))
     V -= tf.reduce_min(V)
     V /= tf.reduce_max(V)
