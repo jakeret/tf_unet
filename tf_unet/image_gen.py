@@ -56,6 +56,9 @@ def get_image_gen(nx, ny, **kwargs):
             Y[i,:,:,0] = 1-Y[i,:,:,1]
             
         return X,Y
+    
+    create_batch.channels = 1
+    create_batch.n_class = 2
     return create_batch
 
 def get_image_gen_rgb(nx, ny, **kwargs):
@@ -70,6 +73,8 @@ def get_image_gen_rgb(nx, ny, **kwargs):
                 Y[i,:,:,0] = 1-Y[i,:,:,1]
                 
             return X, Y
+    create_batch.channels = 3
+    create_batch.n_class = 2
     return create_batch
 
 def to_rgb(img):

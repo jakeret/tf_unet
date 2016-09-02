@@ -14,8 +14,6 @@ from tf_unet import util
 if __name__ == '__main__':
     nx = 572
     ny = 572
-    channels = 3
-    n_class = 2
      
     training_iters = 20
     epochs = 100
@@ -25,9 +23,9 @@ if __name__ == '__main__':
  
     generator = image_gen.get_image_gen_rgb(nx, ny, cnt=20)
     
-    net = unet.Unet(channels=channels, n_class=n_class, layers=3, features_root=16)
+    net = unet.Unet(channels=generator.channels, n_class=generator.n_class, layers=3, features_root=16)
     
-    trainer = unet.Trainer(net, momentum=0.2)
+    trainer = unet.Trainer(net, optimizer="momentum", opt_kwargs=dict(momentum=0.2))
     path = trainer.train(generator, "./unet_trained", 
                          training_iters=training_iters, 
                          epochs=epochs, 
@@ -38,6 +36,10 @@ if __name__ == '__main__':
     x_test, y_test = generator(4)
     prediction = net.predict(path, x_test)
      
-    print("Testing error rate: {:.2f}%".format(unet.error_rate(prediction, y_test)))
+    print("Testing error rate: {:.2f}%".format(unet.error_rate(prediction, util.crop_to_shape(y_test, prediction.shape))))
+    
+    import numpy as np
+    np.savetxt("prediction.txt", prediction[..., 1].reshape(-1, prediction.shape[2]))
+    
     img = util.combine_img_prediction(x_test, y_test, prediction)
     util.save_image(img, "prediction.jpg")
