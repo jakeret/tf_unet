@@ -33,16 +33,21 @@ def create_training_path(output_path):
 def launch(data_root, output_path, training_iters, epochs, restore, layers, features_root):
     generator = Generator(572, data_root)
     
+    data, label = generator(1)
+    weights = (1/3) / (label.sum(axis=2).sum(axis=1).sum(axis=0) / data.size)
+    
     net = unet.Unet(channels=generator.channels, 
                     n_class=generator.n_class, 
                     layers=layers, 
                     features_root=features_root,
                     add_regularizers=True,
+                    class_weights=weights,
 #                     filter_size=5
                     )
     
     path = output_path if restore else create_training_path(output_path)
-    trainer = unet.Trainer(net, momentum=0.2)
+#     trainer = unet.Trainer(net, optimizer="momentum", opt_kwargs=dict(momentum=0.2))
+    trainer = unet.Trainer(net, optimizer="adam", opt_kwargs=dict(beta1=0.91))
     path = trainer.train(generator, path, 
                          training_iters=training_iters, 
                          epochs=epochs, 
@@ -50,15 +55,14 @@ def launch(data_root, output_path, training_iters, epochs, restore, layers, feat
                          display_step=2, 
                          restore=restore)
      
-    x_test, y_test = generator(1)
-    prediction = net.predict(path, x_test)
+    prediction = net.predict(path, data)
      
-    print("Testing error rate: {:.2f}%".format(unet.error_rate(prediction, util.crop_to_shape(y_test, prediction.shape))))
+    print("Testing error rate: {:.2f}%".format(unet.error_rate(prediction, util.crop_to_shape(label, prediction.shape))))
     
 #     import numpy as np
 #     np.save("prediction", prediction[0, ..., 1])
     
-    img = util.combine_img_prediction(x_test, y_test, prediction)
+    img = util.combine_img_prediction(data, label, prediction)
     util.save_image(img, "prediction.jpg")
 
 
