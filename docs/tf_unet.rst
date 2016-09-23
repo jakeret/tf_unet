@@ -1,9 +1,6 @@
 tf_unet Package
 ===============
 
-:mod:`tf_unet` Package
-----------------------
-
 :mod:`unet` Module
 ------------------
 
