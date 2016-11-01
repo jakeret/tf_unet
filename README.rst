@@ -6,6 +6,9 @@ Tensorflow Unet
 	:target: http://tf-unet.readthedocs.io/en/latest/?badge=latest
 	:alt: Documentation Status
 		
+.. image:: http://img.shields.io/badge/arXiv-1609.09077-orange.svg?style=flat
+        :target: http://arxiv.org/abs/1609.09077
+
 
 This is a generic convolutional neural network implementation following the **U-Net** architecture proposed in this paper (https://arxiv.org/pdf/1505.04597.pdf).
 
