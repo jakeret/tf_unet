@@ -27,3 +27,6 @@ Keep track of the learning progress using *Tesorboard*. **tf_unet** automaticall
    :alt: Segmentation of a toy problem.
    :align: center
 
+
+More examples can be found in the Jupyter notebooks for a `toy problem <https://github.com/jakeret/tf_unet/blob/master/demo_toy_problem.ipynb>`_ or for a `RFI problem <https://github.com/jakeret/tf_unet/blob/master/demo_radio_data.ipynb>`_.
+Further code is stored in the `scripts <https://github.com/jakeret/tf_unet/tree/master/scripts>`_ folder.
