@@ -9,8 +9,11 @@ Tensorflow Unet
 .. image:: http://img.shields.io/badge/arXiv-1609.09077-orange.svg?style=flat
         :target: http://arxiv.org/abs/1609.09077
 
+.. image:: https://img.shields.io/badge/ascl-1611.002-blue.svg?colorB=262255
+        :target: http://ascl.net/1611.002
 
-This is a generic convolutional neural network implementation following the **U-Net** architecture proposed in this `paper <https://arxiv.org/pdf/1505.04597.pdf>`_ written with **Tensorflow**.
+
+This is a generic convolutional neural network implementation following the **U-Net** architecture proposed in this `paper <https://arxiv.org/pdf/1505.04597.pdf>`_ written with **Tensorflow**. The code has been developed and used for `Radio Frequency Interference mitigation using deep convolutional neural networks <http://arxiv.org/abs/1609.09077>`_ 
 
 The code is not tied to a specific segmentation such that it has been used in a toy problem to detect circles in a noisy image.
 
