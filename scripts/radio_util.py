@@ -23,7 +23,7 @@ import h5py
 import numpy as np
 
 
-class Generator(object):
+class DataProvider(object):
     channels = 1
     n_class = 2
     

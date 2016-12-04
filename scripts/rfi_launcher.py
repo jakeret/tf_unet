@@ -25,7 +25,7 @@ import click
 from tf_unet import unet
 from tf_unet import util
 
-from scripts.radio_util import Generator
+from scripts.radio_util import DataProvider
 
 def create_training_path(output_path):
     idx = 0
@@ -45,10 +45,10 @@ def create_training_path(output_path):
 @click.option('--features_root', default=64)
 def launch(data_root, output_path, training_iters, epochs, restore, layers, features_root):
     print("Using data from: %s"%data_root)
-    generator = Generator(600, glob.glob(data_root+"/*"))
+    data_provider = DataProvider(600, glob.glob(data_root+"/*"))
     
-    net = unet.Unet(channels=generator.channels, 
-                    n_class=generator.n_class, 
+    net = unet.Unet(channels=data_provider.channels, 
+                    n_class=data_provider.n_class, 
                     layers=layers, 
                     features_root=features_root,
                     add_regularizers=True,
@@ -57,14 +57,14 @@ def launch(data_root, output_path, training_iters, epochs, restore, layers, feat
     
     path = output_path if restore else create_training_path(output_path)
     trainer = unet.Trainer(net, optimizer="momentum", opt_kwargs=dict(momentum=0.2))
-    path = trainer.train(generator, path, 
+    path = trainer.train(data_provider, path, 
                          training_iters=training_iters, 
                          epochs=epochs, 
                          dropout=0.5, 
                          display_step=2, 
                          restore=restore)
      
-    x_test, y_test = generator(1)
+    x_test, y_test = data_provider(1)
     prediction = net.predict(path, x_test)
      
     print("Testing error rate: {:.2f}%".format(unet.error_rate(prediction, util.crop_to_shape(y_test, prediction.shape))))

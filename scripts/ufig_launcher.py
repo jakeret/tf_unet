@@ -24,7 +24,7 @@ import click
 from tf_unet import unet
 from tf_unet import util
 
-from scripts.ufig_util import Generator
+from scripts.ufig_util import DataProvider
 
 def create_training_path(output_path):
     idx = 0
@@ -43,13 +43,13 @@ def create_training_path(output_path):
 @click.option('--layers', default=3)
 @click.option('--features_root', default=16)
 def launch(data_root, output_path, training_iters, epochs, restore, layers, features_root):
-    generator = Generator(572, data_root)
+    data_provider = DataProvider(572, data_root)
     
-    data, label = generator(1)
+    data, label = data_provider(1)
     weights = None#(1/3) / (label.sum(axis=2).sum(axis=1).sum(axis=0) / data.size)
     
-    net = unet.Unet(channels=generator.channels, 
-                    n_class=generator.n_class, 
+    net = unet.Unet(channels=data_provider.channels, 
+                    n_class=data_provider.n_class, 
                     layers=layers, 
                     features_root=features_root,
                     add_regularizers=True,
@@ -60,7 +60,7 @@ def launch(data_root, output_path, training_iters, epochs, restore, layers, feat
     path = output_path if restore else create_training_path(output_path)
 #     trainer = unet.Trainer(net, optimizer="momentum", opt_kwargs=dict(momentum=0.2))
     trainer = unet.Trainer(net, optimizer="adam", opt_kwargs=dict(beta1=0.91))
-    path = trainer.train(generator, path, 
+    path = trainer.train(data_provider, path, 
                          training_iters=training_iters, 
                          epochs=epochs, 
                          dropout=0.5, 

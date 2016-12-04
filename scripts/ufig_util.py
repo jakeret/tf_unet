@@ -23,7 +23,7 @@ import numpy as np
 from scipy.ndimage import gaussian_filter
 import h5py
 
-class Generator(object):
+class DataProvider(object):
     channels = 1
     n_class = 3
     
