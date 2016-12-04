@@ -19,13 +19,11 @@ author: jakeret
 '''
 from __future__ import print_function, division, absolute_import, unicode_literals
 import os
-import glob
 import click
 
 from tf_unet import unet
 from tf_unet import util
-
-from scripts.ultrasound_util import DataProvider
+from scripts import ultrasound_util
 
 def create_training_path(output_path):
     idx = 0
@@ -45,10 +43,9 @@ def create_training_path(output_path):
 @click.option('--features_root', default=64)
 def launch(data_root, output_path, training_iters, epochs, restore, layers, features_root):
     print("Using data from: %s"%data_root)
-    data_provider = DataProvider(data_files=glob.glob(data_root+"/[0-9]?_[0-9]?.tif"),
-                                 mask_files=glob.glob(data_root+"/[0-9]?_[0-9]?_mask.tif"),
-                                 )
-    
+    data_provider = ultrasound_util.DataProvider(data_root + "/*.tif", 
+                                      a_min=0, 
+                                      a_max=210)
     net = unet.Unet(channels=data_provider.channels, 
                     n_class=data_provider.n_class, 
                     layers=layers, 

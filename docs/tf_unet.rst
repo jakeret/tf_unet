@@ -9,6 +9,14 @@ tf_unet Package
     :undoc-members:
     :show-inheritance:
 
+:mod:`image_util` Module
+------------------
+
+.. automodule:: tf_unet.image_util
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 :mod:`util` Module
 ------------------
 
