@@ -270,6 +270,7 @@ class Trainer(object):
     """
     
     prediction_path = "prediction"
+    verification_batch_size = 4
     
     def __init__(self, net, batch_size=1, optimizer="momentum", opt_kwargs={}):
         self.net = net
@@ -364,7 +365,7 @@ class Trainer(object):
                 if ckpt and ckpt.model_checkpoint_path:
                     self.net.restore(sess, ckpt.model_checkpoint_path)
             
-            test_x, test_y = data_provider(4)
+            test_x, test_y = data_provider(self.verification_batch_size)
             pred_shape = self.store_prediction(sess, test_x, test_y, "_init")
             
             summary_writer = tf.train.SummaryWriter(output_path, graph=sess.graph)
