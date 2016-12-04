@@ -34,6 +34,10 @@ class BaseDataProvider(object):
     :param a_max: (optional) max value used for clipping
 
     """
+    
+    channels = 1
+    n_class = 2
+    
 
     def __init__(self, a_min=None, a_max=None):
         self.a_min = a_min if a_min is not None else -np.inf
@@ -115,6 +119,7 @@ class ImageDataProvider(BaseDataProvider):
     :param mask_suffix: suffix pattern for the label images. Default '_mask.tif'
     
     """
+    
     n_class = 2
     
     def __init__(self, search_path, a_min=None, a_max=None, data_suffix=".tif", mask_suffix='_mask.tif'):

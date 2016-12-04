@@ -33,7 +33,7 @@ if __name__ == '__main__':
     display_step = 2
     restore = False
  
-    generator = image_gen.get_image_gen_rgb(nx, ny, cnt=20)
+    generator = image_gen.RgbDataProvider(nx, ny, cnt=20)
     
     net = unet.Unet(channels=generator.channels, n_class=generator.n_class, layers=3, features_root=16)
     
