@@ -32,16 +32,16 @@ class ImageDataProvider(object):
     data_provider = ImageDataProvider("..fishes/train/*.tif")
         
     :param search_path: a glob search pattern to find all data and label images
-    :param a_min: (optional) clip min
-    :param a_max: (optional) clip max
-    :param mask_suffix: suffix pattern for the label images
+    :param a_min: (optional) min value used for clipping
+    :param a_max: (optional) max value used for clipping
+    :param mask_suffix: suffix pattern for the label images. Default '_mask.tif'
     
     """
     n_class = 2
     
-    def __init__(self, search_path, a_min=-np.inf, a_max=np.inf, mask_suffix='_mask.tif'):
-        self.a_min = a_min
-        self.a_max = a_max
+    def __init__(self, search_path, a_min=None, a_max=None, mask_suffix='_mask.tif'):
+        self.a_min = a_min if a_min is not None else -np.inf
+        self.a_max = a_max if a_min is not None else np.inf
         self.mask_suffix = mask_suffix
         self.file_idx = -1
         

@@ -4,7 +4,10 @@ Usage
 
 To use Tensorflow Unet in a project::
 
-	from tf_unet import unet, util
+	from tf_unet import unet, util, image_util
+	
+	#preparing data loading
+	data_provider = image_util.ImageDataProvider("fishes/train/*.tif")
 
 	#setup & training
 	net = unet.Unet(layers=3, features_root=64, channels=1, n_class=2)

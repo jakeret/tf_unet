@@ -13,6 +13,8 @@
 
 
 '''
+Toy example, generates images at random that can be used for training
+
 Created on Jul 28, 2016
 
 author: jakeret

@@ -10,7 +10,7 @@ tf_unet Package
     :show-inheritance:
 
 :mod:`image_util` Module
-------------------
+------------------------
 
 .. automodule:: tf_unet.image_util
     :members:
