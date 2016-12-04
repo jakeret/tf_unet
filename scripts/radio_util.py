@@ -21,17 +21,22 @@ from __future__ import print_function, division, absolute_import, unicode_litera
 
 import h5py
 import numpy as np
+from tf_unet.image_util import BaseDataProvider
 
 
-class DataProvider(object):
+class DataProvider(BaseDataProvider):
+    """
+    Extends the BaseDataProvider to randomly select the next 
+    data chunk
+    """
+
     channels = 1
     n_class = 2
     
     def __init__(self, nx, files, a_min=30, a_max=210):
+        super(DataProvider, self).__init__(a_min, a_max)
         self.nx = nx
         self.files = files
-        self.a_min = a_min
-        self.a_max = a_max
         
         assert len(files) > 0, "No training files"
         print("Number of files used: %s"%len(files))
@@ -47,7 +52,7 @@ class DataProvider(object):
             rfi = fp["mask"][:, sl]
         return data, rfi
     
-    def _next_chunck(self):
+    def _next_data(self):
         data, rfi = self._read_chunck()
         nx = data.shape[1]
         while nx < self.nx:
@@ -60,36 +65,3 @@ class DataProvider(object):
     def _cylce_file(self):
         self.file_idx = np.random.choice(len(self.files))
         
-
-    def _load_data_and_label(self):
-        data, rfi = self._next_chunck()
-        nx = data.shape[1]
-        ny = data.shape[0]
-        
-        #normalization
-        data = np.clip(np.fabs(data), self.a_min, self.a_max)
-        train_data = data.reshape(1, ny, nx, 1)
-        train_data -= np.amin(data)
-        train_data /= np.amax(data)
-        labels = np.zeros((1, ny, nx, 2), dtype=np.float32)
-        labels[..., 1] = rfi
-        labels[..., 0] = ~rfi
-        return train_data, labels
-    
-    def __call__(self, n):
-        train_data, labels = self._load_data_and_label()
-        nx = train_data.shape[1]
-        ny = train_data.shape[2]
-
-        X = np.zeros((n,nx,ny, 1))
-        Y = np.zeros((n,nx,ny,2))
-
-        X[0] = train_data
-        Y[0] = labels
-        
-        for i in range(1, n):
-            train_data, labels = self._load_data_and_label()
-            X[i] = train_data
-            Y[i] = labels
-        return X, Y
-
