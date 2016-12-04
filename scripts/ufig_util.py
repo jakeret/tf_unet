@@ -50,7 +50,7 @@ class DataProvider(BaseDataProvider):
     def _transpose_3d(self, a):
         return np.stack([a[..., i].T for i in range(a.shape[2])], axis=2)
         
-    def post_process(self, data, labels):
+    def _post_process(self, data, labels):
         op = np.random.randint(0, 4)
         if op == 0:
             if np.random.randint(0, 2) == 0:

@@ -23,9 +23,12 @@ from PIL import Image
 
 class BaseDataProvider(object):
     """
-    Abstract base class for DataProvider implementation. Subclasses 
-    have to overwrite the `_next_data` method that load the next 
-    data and label array.
+    Abstract base class for DataProvider implementation. Subclasses have to
+    overwrite the `_next_data` method that load the next data and label array.
+    This implementation automatically clips the data with the given min/max and
+    normalizes the values to (0,1]. To change this behavoir the `_process_data`
+    method can be overwritten. To enable some post processing such as data
+    augmentation the `_post_process` method can be overwritten.
 
     :param a_min: (optional) min value used for clipping
     :param a_max: (optional) max value used for clipping
@@ -42,7 +45,7 @@ class BaseDataProvider(object):
         train_data = self._process_data(data)
         labels = self._process_labels(label)
         
-        train_data, labels = self.post_process(train_data, labels)
+        train_data, labels = self._post_process(train_data, labels)
         
         nx = data.shape[1]
         ny = data.shape[0]
@@ -67,7 +70,7 @@ class BaseDataProvider(object):
         data /= np.amax(data)
         return data
     
-    def post_process(self, data, labels):
+    def _post_process(self, data, labels):
         """
         Post processing hook that can be used for data augmentation
         
