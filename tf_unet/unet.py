@@ -189,9 +189,17 @@ class Unet(object):
         logits, self.variables, self.offset = create_conv_net(self.x, self.keep_prob, channels, n_class, **kwargs)
         
         if class_weights is not None:
+
             class_weights = tf.constant(np.array(class_weights, dtype=np.float32))
-            weighted_logits = tf.mul(tf.reshape(logits, [-1, n_class]), class_weights)
-            loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(weighted_logits, tf.reshape(self.y, [-1, n_class])))
+            labels = tf.reshape(self.y, [-1, n_class])
+
+            weight_map = tf.mul(labels, class_weights)
+            weight_map = tf.reduce_sum(weight_map, axis=1)
+
+            loss_map = tf.nn.softmax_cross_entropy_with_logits(tf.reshape(logits, [-1, n_class]), labels)
+            weighted_loss = tf.mul(loss_map, weight_map)
+
+            loss = tf.reduce_mean(weighted_loss)
             
         else:
             loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(tf.reshape(logits, [-1, n_class]), 
