@@ -44,12 +44,14 @@ def deconv2d(x, W,stride):
 def max_pool(x,n):
     return tf.nn.max_pool(x, ksize=[1, n, n, 1], strides=[1, n, n, 1], padding='VALID')
 
-def crop_and_concat(x1,x2,output_shape):
-    offsets = tf.zeros(tf.pack([output_shape[0], 2]), dtype=tf.float32)
+def crop_and_concat(x1,x2):
+    x1_shape = tf.shape(x1)
     x2_shape = tf.shape(x2)
-    size = tf.pack((x2_shape[1], x2_shape[2]))
-    x1_crop = tf.image.extract_glimpse(x1, size=size, offsets=offsets, centered=True)
-    return tf.concat(3, [x1_crop, x2]) 
+    # offsets for the top left corner of the crop
+    offsets = [0, (x1_shape[1] - x2_shape[1]) / 2, (x1_shape[2] - x2_shape[2]) / 2, 0]
+    size = [-1, x2_shape[1], x2_shape[2], -1]
+    x1_crop = tf.slice(x1, offsets, size)
+    return tf.concat(3, [x1_crop, x2])
 
 def pixel_wise_softmax(output_map):
     exponential_map = tf.exp(output_map)

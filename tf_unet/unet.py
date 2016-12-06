@@ -106,7 +106,7 @@ def create_conv_net(x, keep_prob, channels, n_class, layers=3, features_root=16,
         wd = weight_variable_devonc([pool_size, pool_size, features//2, features], stddev)
         bd = bias_variable([features//2])
         h_deconv = tf.nn.relu(deconv2d(in_node, wd, pool_size) + bd)
-        h_deconv_concat = crop_and_concat(dw_h_convs[layer], h_deconv, [batch_size])
+        h_deconv_concat = crop_and_concat(dw_h_convs[layer], h_deconv)
         deconv[layer] = h_deconv_concat
         
         w1 = weight_variable([filter_size, filter_size, features, features//2], stddev)
