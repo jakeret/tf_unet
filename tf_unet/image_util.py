@@ -147,7 +147,7 @@ class ImageDataProvider(BaseDataProvider):
 
     def _cylce_file(self):
         self.file_idx += 1
-        if self.file_idx > len(self.data_files):
+        if self.file_idx >= len(self.data_files):
             self.file_idx = 0 
         
     def _next_data(self):
