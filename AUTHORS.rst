@@ -10,7 +10,7 @@ Development Lead
 Contributors
 ------------
 
-None yet. Why not be the first?
+* `@FelixGruen <https://github.com/FelixGruen>`_ 
 
 Citations
 ---------
