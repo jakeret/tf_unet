@@ -18,9 +18,6 @@ Created on Jul 28, 2016
 author: jakeret
 '''
 from __future__ import print_function, division, absolute_import, unicode_literals
-
-import numpy as np
-
 from tf_unet import image_gen
 from tf_unet import unet
 from tf_unet import util
@@ -38,12 +35,7 @@ if __name__ == '__main__':
  
     generator = image_gen.RgbDataProvider(nx, ny, cnt=20)
     
-    x_test, y_test = generator(1)
-
-    weights = [1.2, 8.3,  40.4] #85.5% bkg,  12% circles, 2.5% rectangles
-    
-    net = unet.Unet(channels=generator.channels, n_class=generator.n_class, layers=3, features_root=16,
-                    class_weights=weights)
+    net = unet.Unet(channels=generator.channels, n_class=generator.n_class, layers=3, features_root=16)
     
     trainer = unet.Trainer(net, optimizer="momentum", opt_kwargs=dict(momentum=0.2))
     path = trainer.train(generator, "./unet_trained", 

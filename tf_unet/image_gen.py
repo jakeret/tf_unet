@@ -24,9 +24,17 @@ from __future__ import print_function, division, absolute_import, unicode_litera
 import numpy as np
 from tf_unet.image_util import BaseDataProvider
 
+sigma = 10
+
+plateau_min = -2
+plateau_max = 2
+
+r_min = 1
+r_max = 200
+
 class GrayScaleDataProvider(BaseDataProvider):
     channels = 1
-    n_class = 3
+    n_class = 2
     
     def __init__(self, nx, ny, **kwargs):
         super(GrayScaleDataProvider, self).__init__()
@@ -39,7 +47,7 @@ class GrayScaleDataProvider(BaseDataProvider):
 
 class RgbDataProvider(BaseDataProvider):
     channels = 3
-    n_class = 3
+    n_class = 2
     
     def __init__(self, nx, ny, **kwargs):
         super(RgbDataProvider, self).__init__()
@@ -58,7 +66,7 @@ def create_image_and_label(nx,ny, cnt = 10):
     sigma = 20
     
     image = np.ones((nx, ny, 1))
-    label = np.zeros((nx, ny, 3), dtype=np.bool)
+    label = np.ones((nx, ny), dtype=np.bool)
     mask = np.zeros((nx, ny), dtype=np.bool)
     for _ in range(cnt):
         a = np.random.randint(border, nx-border)
@@ -71,23 +79,7 @@ def create_image_and_label(nx,ny, cnt = 10):
         mask = np.logical_or(mask, m)
 
         image[m] = h
-
-    label[mask, 1] = 1
-    mask = np.zeros((nx, ny), dtype=np.bool)
-    for _ in range(cnt//2):
-        a = np.random.randint(nx)
-        b = np.random.randint(ny)
-        r =  np.random.randint(r_min, r_max)
-        h = np.random.randint(1,255)
-
-        m = np.zeros((nx, ny), dtype=np.bool)
-        m[a:a+r, b:b+r] = True
-        mask = np.logical_or(mask, m)
-        image[m] = h
-        
-    label[mask, 2] = 1
-    
-    label[..., 0] = ~(np.logical_or(label[...,1], label[...,2]))
+    label[mask] = 0
     
     image += np.random.normal(scale=sigma, size=image.shape)
     image -= np.amin(image)
