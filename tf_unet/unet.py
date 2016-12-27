@@ -136,20 +136,20 @@ def create_conv_net(x, keep_prob, channels, n_class, layers=3, features_root=16,
     
     if summaries:
         for i, (c1, c2) in enumerate(convs):
-            tf.image_summary('summary_conv_%02d_01'%i, get_image_summary(c1))
-            tf.image_summary('summary_conv_%02d_02'%i, get_image_summary(c2))
+            tf.summary.image('summary_conv_%02d_01'%i, get_image_summary(c1))
+            tf.summary.image('summary_conv_%02d_02'%i, get_image_summary(c2))
             
         for k in pools.keys():
-            tf.image_summary('summary_pool_%02d'%k, get_image_summary(pools[k]))
+            tf.summary.image('summary_pool_%02d'%k, get_image_summary(pools[k]))
         
         for k in deconv.keys():
-            tf.image_summary('summary_deconv_concat_%02d'%k, get_image_summary(deconv[k]))
+            tf.summary.image('summary_deconv_concat_%02d'%k, get_image_summary(deconv[k]))
             
         for k in dw_h_convs.keys():
-            tf.histogram_summary("dw_convolution_%02d"%k + '/activations', dw_h_convs[k])
+            tf.summary.histogram("dw_convolution_%02d"%k + '/activations', dw_h_convs[k])
 
         for k in up_h_convs.keys():
-            tf.histogram_summary("up_convolution_%s"%k + '/activations', up_h_convs[k])
+            tf.summary.histogram("up_convolution_%s"%k + '/activations', up_h_convs[k])
             
     variables = []
     for w1,w2 in weights:
@@ -316,17 +316,17 @@ class Trainer(object):
         self.norm_gradients_node = tf.Variable(tf.constant(0.0, shape=[len(self.net.gradients_node)]))
         
         if self.net.summaries:
-            tf.histogram_summary('norm_grads', self.norm_gradients_node)
+            tf.summary.histogram('norm_grads', self.norm_gradients_node)
 
-        tf.scalar_summary('loss', self.net.cost)
-        tf.scalar_summary('cross_entropy', self.net.cross_entropy)
-        tf.scalar_summary('accuracy', self.net.accuracy)
+        tf.summary.scalar('loss', self.net.cost)
+        tf.summary.scalar('cross_entropy', self.net.cross_entropy)
+        tf.summary.scalar('accuracy', self.net.accuracy)
 
         self.optimizer = self._get_optimizer(training_iters, global_step)
-        tf.scalar_summary('learning_rate', self.learning_rate_node)
+        tf.summary.scalar('learning_rate', self.learning_rate_node)
 
-        self.summary_op = tf.merge_all_summaries()        
-        init = tf.initialize_all_variables()
+        self.summary_op = tf.summary.merge_all()        
+        init = tf.global_variables_initializer()
         
         prediction_path = os.path.abspath(self.prediction_path)
         output_path = os.path.abspath(output_path)
@@ -376,7 +376,7 @@ class Trainer(object):
             test_x, test_y = data_provider(self.verification_batch_size)
             pred_shape = self.store_prediction(sess, test_x, test_y, "_init")
             
-            summary_writer = tf.train.SummaryWriter(output_path, graph=sess.graph)
+            summary_writer = tf.summary.FileWriter(output_path, graph=sess.graph)
             print("Start optimization")
             
             avg_gradients = None
