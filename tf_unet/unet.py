@@ -23,6 +23,7 @@ import os
 import shutil
 import numpy as np
 from collections import OrderedDict
+import logging
 
 import tensorflow as tf
 
@@ -31,6 +32,7 @@ from tf_unet.layers import (weight_variable, weight_variable_devonc, bias_variab
                             conv2d, deconv2d, max_pool, crop_and_concat, pixel_wise_softmax_2,
                             cross_entropy)
 
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
 def create_conv_net(x, keep_prob, channels, n_class, layers=3, features_root=16, filter_size=3, pool_size=2, summaries=True):
     """
@@ -47,7 +49,7 @@ def create_conv_net(x, keep_prob, channels, n_class, layers=3, features_root=16,
     :param summaries: Flag if summaries should be created
     """
     
-    print("Layers {layers}, features {features}, filter size {filter_size}x{filter_size}, pool size: {pool_size}x{pool_size}".format(layers=layers,
+    logging.info("Layers {layers}, features {features}, filter size {filter_size}x{filter_size}, pool size: {pool_size}x{pool_size}".format(layers=layers,
                                                                                                            features=features_root,
                                                                                                            filter_size=filter_size,
                                                                                                            pool_size=pool_size))
@@ -222,7 +224,7 @@ class Unet(object):
         :returns prediction: The unet prediction Shape [n, px, py, labels] (px=nx-self.offset/2) 
         """
         
-        init = tf.initialize_all_variables()
+        init = tf.global_variables_initializer()
         with tf.Session() as sess:
             # Initialize variables
             sess.run(init)
@@ -257,7 +259,7 @@ class Unet(object):
         
         saver = tf.train.Saver()
         saver.restore(sess, model_path)
-        print("Model restored from file: %s" % model_path)
+        logging.info("Model restored from file: %s" % model_path)
 
 class Trainer(object):
     """
@@ -324,17 +326,17 @@ class Trainer(object):
         output_path = os.path.abspath(output_path)
         
         if not restore:
-            print("Removing '{:}'".format(prediction_path))
+            logging.info("Removing '{:}'".format(prediction_path))
             shutil.rmtree(prediction_path, ignore_errors=True)
-            print("Removing '{:}'".format(output_path))
+            logging.info("Removing '{:}'".format(output_path))
             shutil.rmtree(output_path, ignore_errors=True)
         
         if not os.path.exists(prediction_path):
-            print("Allocating '{:}'".format(prediction_path))
+            logging.info("Allocating '{:}'".format(prediction_path))
             os.makedirs(prediction_path)
         
         if not os.path.exists(output_path):
-            print("Allocating '{:}'".format(output_path))
+            logging.info("Allocating '{:}'".format(output_path))
             os.makedirs(output_path)
         
         return init
@@ -369,7 +371,7 @@ class Trainer(object):
             pred_shape = self.store_prediction(sess, test_x, test_y, "_init")
             
             summary_writer = tf.summary.FileWriter(output_path, graph=sess.graph)
-            print("Start optimization")
+            logging.info("Start optimization")
             
             avg_gradients = None
             for epoch in range(epochs):
@@ -400,7 +402,7 @@ class Trainer(object):
                 self.store_prediction(sess, test_x, test_y, "epoch_%s"%epoch)
                     
                 save_path = self.net.save(sess, save_path)
-            print("Optimization Finished!")
+            logging.info("Optimization Finished!")
             
             return save_path
         
@@ -408,14 +410,13 @@ class Trainer(object):
         prediction = sess.run(self.net.predicter, feed_dict={self.net.x: batch_x, 
                                                              self.net.y: batch_y, 
                                                              self.net.keep_prob: 1.})
-#         print(prediction[0, ..., 1])
         pred_shape = prediction.shape
         
         loss = sess.run(self.net.cost, feed_dict={self.net.x: batch_x, 
                                                        self.net.y: util.crop_to_shape(batch_y, pred_shape), 
                                                        self.net.keep_prob: 1.})
         
-        print("Verification error= {:.1f}%, loss= {:.4f}".format(error_rate(prediction,
+        logging.info("Verification error= {:.1f}%, loss= {:.4f}".format(error_rate(prediction,
                                                                           util.crop_to_shape(batch_y,
                                                                                              prediction.shape)),
                                                                           loss))
@@ -426,7 +427,7 @@ class Trainer(object):
         return pred_shape
     
     def output_epoch_stats(self, epoch, total_loss, training_iters, lr):
-        print("Epoch {:}, Average loss: {:.4f}, learning rate: {:.4f}".format(epoch, (total_loss / training_iters), lr))
+        logging.info("Epoch {:}, Average loss: {:.4f}, learning rate: {:.4f}".format(epoch, (total_loss / training_iters), lr))
     
     def output_minibatch_stats(self, sess, summary_writer, step, batch_x, batch_y):
         # Calculate batch loss and accuracy
@@ -439,7 +440,7 @@ class Trainer(object):
                                                                       self.net.keep_prob: 1.})
         summary_writer.add_summary(summary_str, step)
         summary_writer.flush()
-        print("Iter {:}, Minibatch Loss= {:.4f}, Training Accuracy= {:.4f}, Minibatch error= {:.1f}%".format(step,
+        logging.info("Iter {:}, Minibatch Loss= {:.4f}, Training Accuracy= {:.4f}, Minibatch error= {:.1f}%".format(step,
                                                                                                             loss,
                                                                                                             acc,
                                                                                                             error_rate(predictions, batch_y)))
