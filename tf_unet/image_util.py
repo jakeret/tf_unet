@@ -93,7 +93,7 @@ class BaseDataProvider(object):
     
         X[0] = train_data
         Y[0] = labels
-        for i in range(0, n):
+        for i in range(1, n):
             train_data, labels = self._load_data_and_label()
             X[i] = train_data
             Y[i] = labels
