@@ -170,50 +170,67 @@ class Unet(object):
     """
     A unet implementation
     
-    :param nx: (optional) size of input image in x
-    :param ny: (optional) size of input image in x
     :param channels: (optional) number of channels in the input image
     :param n_class: (optional) number of output labels
-    :param add_regularizers: (optional) if true L2 regularizers are added to the loss function
-    :param class_weights: (optional) weights for the different classes in case of multi-class imbalance
+    :param cost: (optional) name of the cost function. Default is 'cross_entropy'
+    :param cost_kwargs: (optional) kwargs passed to the cost function. See Unet._get_cost for more options
     """
     
-    def __init__(self, nx=None, ny=None, channels=3, n_class=2, add_regularizers=True, class_weights=None, **kwargs):
+    def __init__(self, channels=3, n_class=2, cost="cross_entropy", cost_kwargs={}, **kwargs):
         tf.reset_default_graph()
         
         self.n_class = n_class
         self.summaries = kwargs.get("summaries", True)
         
-        self.x = tf.placeholder("float", shape=[None, nx, ny, channels])
+        self.x = tf.placeholder("float", shape=[None, None, None, channels])
         self.y = tf.placeholder("float", shape=[None, None, None, n_class])
         self.keep_prob = tf.placeholder(tf.float32) #dropout (keep probability)
         
         logits, self.variables, self.offset = create_conv_net(self.x, self.keep_prob, channels, n_class, **kwargs)
         
-        if class_weights is not None:
-            class_weights = tf.constant(np.array(class_weights, dtype=np.float32))
-            weighted_logits = tf.mul(tf.reshape(logits, [-1, n_class]), class_weights)
-            loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(weighted_logits, tf.reshape(self.y, [-1, n_class])))
-            
-        else:
-            loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(tf.reshape(logits, [-1, n_class]), 
-                                                                               tf.reshape(self.y, [-1, n_class])))
-        self.gradients_node = tf.gradients(loss, self.variables)
+        self.cost = self._get_cost(logits, cost, cost_kwargs)
+        
+        self.gradients_node = tf.gradients(self.cost, self.variables)
          
         self.cross_entropy = tf.reduce_mean(cross_entropy(tf.reshape(self.y, [-1, n_class]),
-                                            tf.reshape(pixel_wise_softmax_2(logits), [-1, n_class]), 
-                                            ))
-        self.cost = loss
-        
-        if add_regularizers:
-            reg_constant = 0.001  # Choose an appropriate one.
-            regularizers = sum([tf.nn.l2_loss(variable) for variable in self.variables])
-            self.cost += (reg_constant * regularizers)
+                                                          tf.reshape(pixel_wise_softmax_2(logits), [-1, n_class])))
         
         self.predicter = pixel_wise_softmax_2(logits)
         self.correct_pred = tf.equal(tf.argmax(self.predicter, 3), tf.argmax(self.y, 3))
         self.accuracy = tf.reduce_mean(tf.cast(self.correct_pred, tf.float32))
         
+    def _get_cost(self, logits, cost_name, cost_kwargs):
+        """
+        Constructs the cost function. Optional arguments are: 
+        class_weights: weights for the different classes in case of multi-class imbalance
+        regularizer: power of the L2 regularizers added to the loss function
+        """
+        
+        flat_logits = tf.reshape(logits, [-1, self.n_class])
+        flat_y = tf.reshape(self.y, [-1, self.n_class])
+        if cost_name == "cross_entropy":
+            class_weights = cost_kwargs.pop("class_weights", None)
+            if class_weights is not None:
+                class_weights = tf.constant(np.array(class_weights, dtype=np.float32))
+                weighted_logits = tf.mul(flat_logits, class_weights)
+                loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(weighted_logits,
+                                                                              flat_y))
+                
+            else:
+                loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(flat_logits, 
+                                                                              flat_y))
+        elif cost_name == "dice_coefficient":
+            intersection = tf.reduce_sum(flat_logits * flat_y, axis=1, keep_dims=True)
+            union = tf.reduce_sum(tf.mul(flat_logits, flat_logits), axis=1, keep_dims=True) \
+                    + tf.reduce_sum(tf.mul(flat_y, flat_y), axis=1, keep_dims=True)
+            loss = 1 - tf.reduce_mean(2 * intersection/ (union))
+
+        regularizer = cost_kwargs.pop("regularizer", None)
+        if regularizer is not None:
+            regularizers = sum([tf.nn.l2_loss(variable) for variable in self.variables])
+            loss += (regularizer * regularizers)
+            
+        return loss
 
     def predict(self, model_path, x_test):
         """
