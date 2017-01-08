@@ -207,22 +207,28 @@ class Unet(object):
         """
         
         flat_logits = tf.reshape(logits, [-1, self.n_class])
-        flat_y = tf.reshape(self.y, [-1, self.n_class])
+        flat_labels = tf.reshape(self.y, [-1, self.n_class])
         if cost_name == "cross_entropy":
             class_weights = cost_kwargs.pop("class_weights", None)
+            
             if class_weights is not None:
                 class_weights = tf.constant(np.array(class_weights, dtype=np.float32))
-                weighted_logits = tf.mul(flat_logits, class_weights)
-                loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(weighted_logits,
-                                                                              flat_y))
+        
+                weight_map = tf.mul(flat_labels, class_weights)
+                weight_map = tf.reduce_sum(weight_map, axis=1)
+        
+                loss_map = tf.nn.softmax_cross_entropy_with_logits(flat_logits, flat_labels)
+                weighted_loss = tf.mul(loss_map, weight_map)
+        
+                loss = tf.reduce_mean(weighted_loss)
                 
             else:
                 loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(flat_logits, 
-                                                                              flat_y))
+                                                                              flat_labels))
         elif cost_name == "dice_coefficient":
-            intersection = tf.reduce_sum(flat_logits * flat_y, axis=1, keep_dims=True)
+            intersection = tf.reduce_sum(flat_logits * flat_labels, axis=1, keep_dims=True)
             union = tf.reduce_sum(tf.mul(flat_logits, flat_logits), axis=1, keep_dims=True) \
-                    + tf.reduce_sum(tf.mul(flat_y, flat_y), axis=1, keep_dims=True)
+                    + tf.reduce_sum(tf.mul(flat_labels, flat_labels), axis=1, keep_dims=True)
             loss = 1 - tf.reduce_mean(2 * intersection/ (union))
 
         regularizer = cost_kwargs.pop("regularizer", None)
