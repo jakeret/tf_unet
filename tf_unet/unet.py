@@ -231,6 +231,8 @@ class Unet(object):
             union = tf.reduce_sum(tf.mul(flat_logits, flat_logits), axis=1, keep_dims=True) \
                     + tf.reduce_sum(tf.mul(flat_labels, flat_labels), axis=1, keep_dims=True)
             loss = 1 - tf.reduce_mean(2 * intersection/ (union))
+        else:
+            raise ValueError("Unknown cost function: "%cost_name)
 
         regularizer = cost_kwargs.pop("regularizer", None)
         if regularizer is not None:

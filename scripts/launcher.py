@@ -33,12 +33,13 @@ if __name__ == '__main__':
     display_step = 2
     restore = False
  
-    generator = image_gen.RgbDataProvider(nx, ny, cnt=20)
+    generator = image_gen.RgbDataProvider(nx, ny, cnt=20, rectangles=False)
     
     net = unet.Unet(channels=generator.channels, 
                     n_class=generator.n_class, 
                     layers=3, 
-                    features_root=16)
+                    features_root=16,
+                    cost="dice_coefficient")
     
     trainer = unet.Trainer(net, optimizer="momentum", opt_kwargs=dict(momentum=0.2))
     path = trainer.train(generator, "./unet_trained", 
