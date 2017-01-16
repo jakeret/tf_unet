@@ -52,13 +52,11 @@ def launch(data_root, output_path, training_iters, epochs, restore, layers, feat
                     n_class=data_provider.n_class, 
                     layers=layers, 
                     features_root=features_root,
-                    add_regularizers=True,
-                    class_weights=weights,
-#                     filter_size=5
+                    cost_kwargs=dict(regularizer=0.001,
+                                     class_weights=weights),
                     )
     
     path = output_path if restore else create_training_path(output_path)
-#     trainer = unet.Trainer(net, optimizer="momentum", opt_kwargs=dict(momentum=0.2))
     trainer = unet.Trainer(net, optimizer="adam", opt_kwargs=dict(beta1=0.91))
     path = trainer.train(data_provider, path, 
                          training_iters=training_iters, 
@@ -71,12 +69,6 @@ def launch(data_root, output_path, training_iters, epochs, restore, layers, feat
      
     print("Testing error rate: {:.2f}%".format(unet.error_rate(prediction, util.crop_to_shape(label, prediction.shape))))
     
-#     import numpy as np
-#     np.save("prediction", prediction[0, ..., 1])
-    
-    img = util.combine_img_prediction(data, label, prediction)
-    util.save_image(img, "prediction.jpg")
-
 
 if __name__ == '__main__':
     launch()

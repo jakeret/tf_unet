@@ -33,9 +33,13 @@ if __name__ == '__main__':
     display_step = 2
     restore = False
  
-    generator = image_gen.RgbDataProvider(nx, ny, cnt=20)
+    generator = image_gen.RgbDataProvider(nx, ny, cnt=20, rectangles=False)
     
-    net = unet.Unet(channels=generator.channels, n_class=generator.n_class, layers=3, features_root=16)
+    net = unet.Unet(channels=generator.channels, 
+                    n_class=generator.n_class, 
+                    layers=3, 
+                    features_root=16,
+                    cost="dice_coefficient")
     
     trainer = unet.Trainer(net, optimizer="momentum", opt_kwargs=dict(momentum=0.2))
     path = trainer.train(generator, "./unet_trained", 
@@ -50,8 +54,3 @@ if __name__ == '__main__':
      
     print("Testing error rate: {:.2f}%".format(unet.error_rate(prediction, util.crop_to_shape(y_test, prediction.shape))))
     
-    import numpy as np
-    np.savetxt("prediction.txt", prediction[..., 1].reshape(-1, prediction.shape[2]))
-    
-    img = util.combine_img_prediction(x_test, y_test, prediction)
-    util.save_image(img, "prediction.jpg")
