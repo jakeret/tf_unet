@@ -15,9 +15,9 @@ Tensorflow Unet
 
 This is a generic convolutional neural network implementation following the **U-Net** architecture proposed in this `paper <https://arxiv.org/pdf/1505.04597.pdf>`_ written with **Tensorflow**. The code has been developed and used for `Radio Frequency Interference mitigation using deep convolutional neural networks <http://arxiv.org/abs/1609.09077>`_ 
 
-Using `tf_unet` is easy! Checkout the *Usage* section or the included Jupyter notebooks for a `toy problem <https://github.com/jakeret/tf_unet/blob/master/demo/demo_toy_problem.ipynb>`_ or for a `RFI problem <https://github.com/jakeret/tf_unet/blob/master/demo/demo_radio_data.ipynb>`_.
+Checkout the *Usage* section or the included Jupyter notebooks for a `toy problem <https://github.com/jakeret/tf_unet/blob/master/demo/demo_toy_problem.ipynb>`_ or the `RFI problem <https://github.com/jakeret/tf_unet/blob/master/demo/demo_radio_data.ipynb>`_ discussed in the paper.
 
-The code is not tied to a specific segmentation such that it has been used in a toy problem to detect circles in a noisy image.
+The code is not tied to a specific segmentation such that it can be used in a toy problem to detect circles in a noisy image.
 
 .. image:: https://raw.githubusercontent.com/jakeret/tf_unet/master/docs/toy_problem.png
    :alt: Segmentation of a toy problem.
