@@ -45,3 +45,12 @@ output/*/index.html
 docs/_build
 /unet_trained/
 /prediction/
+/bleien_data/
+/daint_unet_trained_rfi/
+/daint_unet_trained_rfi_bleien/
+/daint_unet_trained_rfi_bleien4/
+/sim_data/
+/ufig_images/
+/.hope/
+/.ipynb_checkpoints/
+/.settings/
