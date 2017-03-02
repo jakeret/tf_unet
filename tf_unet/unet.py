@@ -56,7 +56,7 @@ def create_conv_net(x, keep_prob, channels, n_class, layers=3, features_root=16,
     # Placeholder for the input image
     nx = tf.shape(x)[1]
     ny = tf.shape(x)[2]
-    x_image = tf.reshape(x, tf.pack([-1,nx,ny,channels]))
+    x_image = tf.reshape(x, tf.stack([-1,nx,ny,channels]))
     in_node = x_image
     batch_size = tf.shape(x_image)[0]
  
@@ -224,8 +224,8 @@ class Unet(object):
                 loss = tf.reduce_mean(weighted_loss)
                 
             else:
-                loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(flat_logits, 
-                                                                              flat_labels))
+                loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=flat_logits, 
+                                                                              labels=flat_labels))
         elif cost_name == "dice_coefficient":
             eps = 1e-5
             prediction = pixel_wise_softmax_2(logits)
@@ -498,7 +498,7 @@ def get_image_summary(img, idx=0):
     
     img_w = tf.shape(img)[1]
     img_h = tf.shape(img)[2]
-    V = tf.reshape(V, tf.pack((img_w, img_h, 1)))
+    V = tf.reshape(V, tf.stack((img_w, img_h, 1)))
     V = tf.transpose(V, (2, 0, 1))
-    V = tf.reshape(V, tf.pack((-1, img_w, img_h, 1)))
+    V = tf.reshape(V, tf.stack((-1, img_w, img_h, 1)))
     return V
