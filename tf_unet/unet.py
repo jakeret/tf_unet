@@ -310,6 +310,7 @@ class Trainer(object):
         if self.optimizer == "momentum":
             learning_rate = self.opt_kwargs.pop("learning_rate", 0.2)
             decay_rate = self.opt_kwargs.pop("decay_rate", 0.95)
+            momentum = self.opt_kwargs.pop("momentum", 0.2)
             
             self.learning_rate_node = tf.train.exponential_decay(learning_rate=learning_rate, 
                                                         global_step=global_step, 
@@ -317,7 +318,7 @@ class Trainer(object):
                                                         decay_rate=decay_rate, 
                                                         staircase=True)
             
-            optimizer = tf.train.MomentumOptimizer(learning_rate=self.learning_rate_node, 
+            optimizer = tf.train.MomentumOptimizer(learning_rate=self.learning_rate_node, momentum=momentum,
                                                    **self.opt_kwargs).minimize(self.net.cost, 
                                                                                 global_step=global_step)
         elif self.optimizer == "adam":
