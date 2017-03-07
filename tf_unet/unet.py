@@ -227,10 +227,12 @@ class Unet(object):
                 loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(flat_logits, 
                                                                               flat_labels))
         elif cost_name == "dice_coefficient":
-            intersection = tf.reduce_sum(flat_logits * flat_labels, axis=1, keep_dims=True)
-            union = tf.reduce_sum(tf.mul(flat_logits, flat_logits), axis=1, keep_dims=True) \
-                    + tf.reduce_sum(tf.mul(flat_labels, flat_labels), axis=1, keep_dims=True)
-            loss = 1 - tf.reduce_mean(2 * intersection/ (union))
+            eps = 1e-5
+            prediction = pixel_wise_softmax_2(logits)
+            intersection = tf.reduce_sum(prediction * self.y)
+            union =  eps + tf.reduce_sum(prediction) + tf.reduce_sum(self.y)
+            loss = -(2 * intersection/ (union))
+            
         else:
             raise ValueError("Unknown cost function: "%cost_name)
 
