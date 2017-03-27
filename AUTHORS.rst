@@ -5,12 +5,13 @@ Credits
 Development Lead
 ----------------
 
-* Joel Akeret <jakeret@phys.ethz.ch>
+* Joel Akeret <joel.akeret@gmail.com>
 
 Contributors
 ------------
 
 * `@FelixGruen <https://github.com/FelixGruen>`_ 
+* `@ameya005 <https://github.com/ameya005>`_ 
 
 Citations
 ---------
