@@ -215,11 +215,11 @@ class Unet(object):
             if class_weights is not None:
                 class_weights = tf.constant(np.array(class_weights, dtype=np.float32))
         
-                weight_map = tf.mul(flat_labels, class_weights)
+                weight_map = tf.multiply(flat_labels, class_weights)
                 weight_map = tf.reduce_sum(weight_map, axis=1)
         
                 loss_map = tf.nn.softmax_cross_entropy_with_logits(flat_logits, flat_labels)
-                weighted_loss = tf.mul(loss_map, weight_map)
+                weighted_loss = tf.multiply(loss_map, weight_map)
         
                 loss = tf.reduce_mean(weighted_loss)
                 
