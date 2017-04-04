@@ -48,7 +48,6 @@ setup(
     description='Unet TensorFlow implementation',
     long_description=readme + '\n\n' + doclink + '\n\n' + history,
     author='Joel Akeret',
-    author_email='joel.akeret@gmail.com',
     url='https://github.com/jakeret/tf_unet',
     packages=find_packages(PACKAGE_PATH, "test"),
     package_dir={'tf_unet': 'tf_unet'},

@@ -5,7 +5,7 @@ Credits
 Development Lead
 ----------------
 
-* Joel Akeret <joel.akeret@gmail.com>
+* `@jakeret <https://github.com/jakeret>`_ 
 
 Contributors
 ------------
