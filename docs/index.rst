@@ -21,7 +21,7 @@ Contents:
 Feedback
 ========
 
-If you have any suggestions or questions about **Tensorflow Unet** feel free to email me
-at jakeret@phys.ethz.ch.
+If you have any suggestions or questions about **Tensorflow Unet** feel free to contact me
+on `GitHub <https://github.com/jakeret/tf_unet>`_.
 
 If you encounter any errors or problems with **Tensorflow Unet**, please let me know!
