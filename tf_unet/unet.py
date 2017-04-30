@@ -389,6 +389,8 @@ class Trainer(object):
         init = self._initialize(training_iters, output_path, restore)
         
         with tf.Session() as sess:
+            tf.train.write_graph(sess.graph_def, output_path, "graph.pb", False)
+            
             sess.run(init)
             
             if restore:
