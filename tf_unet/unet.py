@@ -370,7 +370,7 @@ class Trainer(object):
         
         return init
 
-    def train(self, data_provider, output_path, training_iters=10, epochs=100, dropout=0.75, display_step=1, restore=False):
+    def train(self, data_provider, output_path, training_iters=10, epochs=100, dropout=0.75, display_step=1, restore=False, write_graph=False):
         """
         Lauches the training process
         
@@ -381,6 +381,7 @@ class Trainer(object):
         :param dropout: dropout probability
         :param display_step: number of steps till outputting stats
         :param restore: Flag if previous model should be restored 
+        :param write_graph: Flag if the computation graph should be written as protobuf file to the output path
         """
         save_path = os.path.join(output_path, "model.cpkt")
         if epochs == 0:
@@ -389,6 +390,9 @@ class Trainer(object):
         init = self._initialize(training_iters, output_path, restore)
         
         with tf.Session() as sess:
+            if write_graph:
+                tf.train.write_graph(sess.graph_def, output_path, "graph.pb", False)
+            
             sess.run(init)
             
             if restore:
