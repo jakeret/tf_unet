@@ -100,6 +100,31 @@ class BaseDataProvider(object):
     
         return X, Y
     
+class SimpleDataProvider(BaseDataProvider):
+    """
+    A simple data provider for numpy arrays. 
+    Assumes that the data and label are numpy array with the dimensions
+    data `[n, X, Y, channels]`, label `[n, X, Y, classes]`. Where
+    `n` is the number of images, `X`, `Y` the size of the image.
+
+    :param data: data numpy array. Shape=[n, X, Y, channels]
+    :param label: label numpy array. Shape=[n, X, Y, classes]
+    :param a_min: (optional) min value used for clipping
+    :param a_max: (optional) max value used for clipping
+    
+    """
+    
+    def __init__(self, data, label, a_min=None, a_max=None, channels=1, n_class = 2):
+        super(SimpleDataProvider, self).__init__(a_min, a_max)
+        self.data = data
+        self.label = label
+        self.file_count = data.shape[0]
+        self.n_class = n_class
+        self.channels = channels
+
+    def _next_data(self):
+        idx = np.random.choice(self.file_count)
+        return self.data[idx], self.label[idx]
 
 
 class ImageDataProvider(BaseDataProvider):
