@@ -13,6 +13,7 @@ Contributors
 * `@FelixGruen <https://github.com/FelixGruen>`_ 
 * `@ameya005 <https://github.com/ameya005>`_ 
 * `@agrafix  <https://github.com/agrafix>`_ 
+* `@AlessioM  <https://github.com/AlessioM>`_ 
 
 Citations
 ---------
