@@ -24,7 +24,7 @@ To use Tensorflow Unet in a project::
 	img = util.combine_img_prediction(data, label, prediction)
 	util.save_image(img, "prediction.jpg")
 	
-Keep track of the learning progress using *Tesorboard*. **tf_unet** automatically outputs relevant summaries.
+Keep track of the learning progress using *Tensorboard*. **tf_unet** automatically outputs relevant summaries.
 
 .. image:: https://raw.githubusercontent.com/jakeret/tf_unet/master/docs/stats.png
    :alt: Segmentation of a toy problem.
