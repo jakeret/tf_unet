@@ -147,14 +147,18 @@ class ImageDataProvider(BaseDataProvider):
     
     n_class = 2
     
-    def __init__(self, search_path, a_min=None, a_max=None, data_suffix=".tif", mask_suffix='_mask.tif'):
+    def __init__(self, search_path, a_min=None, a_max=None, data_suffix=".tif", mask_suffix='_mask.tif', shuffle_data=True):
         super(ImageDataProvider, self).__init__(a_min, a_max)
         self.data_suffix = data_suffix
         self.mask_suffix = mask_suffix
         self.file_idx = -1
+        self.shuffle_data = shuffle_data
         
         self.data_files = self._find_data_files(search_path)
-    
+        
+        if self.shuffle_data:
+            np.random.shuffle(self.data_files)
+        
         assert len(self.data_files) > 0, "No training files"
         print("Number of files used: %s" % len(self.data_files))
         
@@ -174,6 +178,8 @@ class ImageDataProvider(BaseDataProvider):
         self.file_idx += 1
         if self.file_idx >= len(self.data_files):
             self.file_idx = 0 
+            if self.shuffle_data:
+                np.random.shuffle(self.data_files)
         
     def _next_data(self):
         self._cylce_file()
