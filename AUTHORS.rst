@@ -14,6 +14,7 @@ Contributors
 * `@ameya005 <https://github.com/ameya005>`_ 
 * `@agrafix  <https://github.com/agrafix>`_ 
 * `@AlessioM  <https://github.com/AlessioM>`_ 
+* `@FiLeonard  <https://github.com/FiLeonard>`_ 
 
 Citations
 ---------
