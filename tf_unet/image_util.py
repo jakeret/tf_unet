@@ -142,6 +142,7 @@ class ImageDataProvider(BaseDataProvider):
     :param a_max: (optional) max value used for clipping
     :param data_suffix: suffix pattern for the data images. Default '.tif'
     :param mask_suffix: suffix pattern for the label images. Default '_mask.tif'
+    :param shuffle_data: if the order of the loaded file path should be randomized. Default 'True'
     
     """
     
