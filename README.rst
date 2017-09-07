@@ -36,3 +36,15 @@ Or to detect galaxies and star in wide field imaging data.
    :align: center
 
 
+As you use **tf_unet** for your exciting discoveries, please cite the paper that describes the package::
+
+
+	@article{akeret2017radio,
+	  title={Radio frequency interference mitigation using deep convolutional neural networks},
+	  author={Akeret, Joel and Chang, Chihway and Lucchi, Aurelien and Refregier, Alexandre},
+	  journal={Astronomy and Computing},
+	  volume={18},
+	  pages={35--39},
+	  year={2017},
+	  publisher={Elsevier}
+	}
