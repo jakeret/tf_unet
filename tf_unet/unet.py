@@ -296,16 +296,19 @@ class Trainer(object):
     
     :param net: the unet instance to train
     :param batch_size: size of training batch
+    :param norm_grads: (optional) true if normalized gradients should be added to the summaries
     :param optimizer: (optional) name of the optimizer to use (momentum or adam)
     :param opt_kwargs: (optional) kwargs passed to the learning rate (momentum opt) and to the optimizer
+    
     """
     
     prediction_path = "prediction"
     verification_batch_size = 4
     
-    def __init__(self, net, batch_size=1, optimizer="momentum", opt_kwargs={}):
+    def __init__(self, net, batch_size=1, norm_grads=False, optimizer="momentum", opt_kwargs={}):
         self.net = net
         self.batch_size = batch_size
+        self.norm_grads = norm_grads
         self.optimizer = optimizer
         self.opt_kwargs = opt_kwargs
         
@@ -339,7 +342,7 @@ class Trainer(object):
         
         self.norm_gradients_node = tf.Variable(tf.constant(0.0, shape=[len(self.net.gradients_node)]))
         
-        if self.net.summaries:
+        if self.net.summaries and self.norm_grads:
             tf.summary.histogram('norm_grads', self.norm_gradients_node)
 
         tf.summary.scalar('loss', self.net.cost)
@@ -419,13 +422,10 @@ class Trainer(object):
                                                                  self.net.y: util.crop_to_shape(batch_y, pred_shape),
                                                                  self.net.keep_prob: dropout})
 
-                    if avg_gradients is None:
-                        avg_gradients = [np.zeros_like(gradient) for gradient in gradients]
-                    for i in range(len(gradients)):
-                        avg_gradients[i] = (avg_gradients[i] * (1.0 - (1.0 / (step+1)))) + (gradients[i] / (step+1))
-                        
-                    norm_gradients = [np.linalg.norm(gradient) for gradient in avg_gradients]
-                    self.norm_gradients_node.assign(norm_gradients).eval()
+                    if self.net.summaries and self.norm_grads:
+                        avg_gradients = _update_avg_gradients(avg_gradients, gradients, step)
+                        norm_gradients = [np.linalg.norm(gradient) for gradient in avg_gradients]
+                        self.norm_gradients_node.assign(norm_gradients).eval()
                     
                     if step % display_step == 0:
                         self.output_minibatch_stats(sess, summary_writer, step, batch_x, util.crop_to_shape(batch_y, pred_shape))
@@ -479,6 +479,13 @@ class Trainer(object):
                                                                                                             acc,
                                                                                                             error_rate(predictions, batch_y)))
 
+def _update_avg_gradients(avg_gradients, gradients, step):
+    if avg_gradients is None:
+        avg_gradients = [np.zeros_like(gradient) for gradient in gradients]
+    for i in range(len(gradients)):
+        avg_gradients[i] = (avg_gradients[i] * (1.0 - (1.0 / (step+1)))) + (gradients[i] / (step+1))
+        
+    return avg_gradients
 
 def error_rate(predictions, labels):
     """

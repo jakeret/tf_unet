@@ -54,7 +54,7 @@ def launch(data_root, output_path, training_iters, epochs, restore, layers, feat
                     )
     
     path = output_path if restore else create_training_path(output_path)
-    trainer = unet.Trainer(net, optimizer="adam")
+    trainer = unet.Trainer(net, norm_grads=True, optimizer="adam")
     path = trainer.train(data_provider, path, 
                          training_iters=training_iters, 
                          epochs=epochs, 
