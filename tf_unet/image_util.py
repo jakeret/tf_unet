@@ -111,6 +111,8 @@ class SimpleDataProvider(BaseDataProvider):
     :param label: label numpy array. Shape=[n, X, Y, classes]
     :param a_min: (optional) min value used for clipping
     :param a_max: (optional) max value used for clipping
+    :param channels: (optional) number of channels, default=1
+    :param n_class: (optional) number of classes, default=2
     
     """
     
@@ -143,17 +145,18 @@ class ImageDataProvider(BaseDataProvider):
     :param data_suffix: suffix pattern for the data images. Default '.tif'
     :param mask_suffix: suffix pattern for the label images. Default '_mask.tif'
     :param shuffle_data: if the order of the loaded file path should be randomized. Default 'True'
+    :param channels: (optional) number of channels, default=1
+    :param n_class: (optional) number of classes, default=2
     
     """
     
-    n_class = 2
-    
-    def __init__(self, search_path, a_min=None, a_max=None, data_suffix=".tif", mask_suffix='_mask.tif', shuffle_data=True):
+    def __init__(self, search_path, a_min=None, a_max=None, data_suffix=".tif", mask_suffix='_mask.tif', shuffle_data=True, n_class = 2):
         super(ImageDataProvider, self).__init__(a_min, a_max)
         self.data_suffix = data_suffix
         self.mask_suffix = mask_suffix
         self.file_idx = -1
         self.shuffle_data = shuffle_data
+        self.n_class = n_class
         
         self.data_files = self._find_data_files(search_path)
         
