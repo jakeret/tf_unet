@@ -171,7 +171,7 @@ class ImageDataProvider(BaseDataProvider):
         
     def _find_data_files(self, search_path):
         all_files = glob.glob(search_path)
-        return [name for name in all_files if not self.mask_suffix in name]
+        return [name for name in all_files if self.data_suffix in name and not self.mask_suffix in name]
     
     
     def _load_file(self, path, dtype=np.float32):
