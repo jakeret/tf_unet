@@ -51,8 +51,8 @@ class BaseDataProvider(object):
         
         train_data, labels = self._post_process(train_data, labels)
         
-        nx = data.shape[1]
-        ny = data.shape[0]
+        nx = train_data.shape[1]
+        ny = train_data.shape[0]
 
         return train_data.reshape(1, ny, nx, self.channels), labels.reshape(1, ny, nx, self.n_class),
     
