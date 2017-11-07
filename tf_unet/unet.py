@@ -302,7 +302,7 @@ class Trainer(object):
     
     """
     
-    prediction_path = "prediction"
+#    prediction_path = "prediction"
     verification_batch_size = 4
     
     def __init__(self, net, batch_size=1, norm_grads=False, optimizer="momentum", opt_kwargs={}):
@@ -337,7 +337,7 @@ class Trainer(object):
         
         return optimizer
         
-    def _initialize(self, training_iters, output_path, restore):
+    def _initialize(self, training_iters, output_path, restore, prediction_path):
         global_step = tf.Variable(0)
         
         self.norm_gradients_node = tf.Variable(tf.constant(0.0, shape=[len(self.net.gradients_node)]))
@@ -355,18 +355,19 @@ class Trainer(object):
         self.summary_op = tf.summary.merge_all()        
         init = tf.global_variables_initializer()
         
-        prediction_path = os.path.abspath(self.prediction_path)
+        self.prediction_path = prediction_path
+        abs_prediction_path = os.path.abspath(self.prediction_path)
         output_path = os.path.abspath(output_path)
         
         if not restore:
-            logging.info("Removing '{:}'".format(prediction_path))
-            shutil.rmtree(prediction_path, ignore_errors=True)
+            logging.info("Removing '{:}'".format(abs_prediction_path))
+            shutil.rmtree(abs_prediction_path, ignore_errors=True)
             logging.info("Removing '{:}'".format(output_path))
             shutil.rmtree(output_path, ignore_errors=True)
         
-        if not os.path.exists(prediction_path):
-            logging.info("Allocating '{:}'".format(prediction_path))
-            os.makedirs(prediction_path)
+        if not os.path.exists(abs_prediction_path):
+            logging.info("Allocating '{:}'".format(abs_prediction_path))
+            os.makedirs(abs_prediction_path)
         
         if not os.path.exists(output_path):
             logging.info("Allocating '{:}'".format(output_path))
@@ -374,7 +375,7 @@ class Trainer(object):
         
         return init
 
-    def train(self, data_provider, output_path, training_iters=10, epochs=100, dropout=0.75, display_step=1, restore=False, write_graph=False):
+    def train(self, data_provider, output_path, training_iters=10, epochs=100, dropout=0.75, display_step=1, restore=False, write_graph=False, prediction_path = 'prediction'):
         """
         Lauches the training process
         
@@ -391,7 +392,7 @@ class Trainer(object):
         if epochs == 0:
             return save_path
         
-        init = self._initialize(training_iters, output_path, restore)
+        init = self._initialize(training_iters, output_path, restore, prediction_path)
         
         with tf.Session() as sess:
             if write_graph:
