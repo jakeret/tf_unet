@@ -302,7 +302,6 @@ class Trainer(object):
     
     """
     
-#    prediction_path = "prediction"
     verification_batch_size = 4
     
     def __init__(self, net, batch_size=1, norm_grads=False, optimizer="momentum", opt_kwargs={}):
@@ -387,6 +386,7 @@ class Trainer(object):
         :param display_step: number of steps till outputting stats
         :param restore: Flag if previous model should be restored 
         :param write_graph: Flag if the computation graph should be written as protobuf file to the output path
+        :param prediction_path: path where to save predictions on each epoch
         """
         save_path = os.path.join(output_path, "model.cpkt")
         if epochs == 0:
