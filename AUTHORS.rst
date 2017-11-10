@@ -15,6 +15,7 @@ Contributors
 * `@agrafix  <https://github.com/agrafix>`_ 
 * `@AlessioM  <https://github.com/AlessioM>`_ 
 * `@FiLeonard  <https://github.com/FiLeonard>`_ 
+* `@nikkou  <https://github.com/nikkou>`_ 
 
 Citations
 ---------
