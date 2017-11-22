@@ -2,3 +2,5 @@ click
 numpy
 Pillow
 tensorflow>=1.0.0
+matplotlib
+-e https://github.com/jakeret/tf_unet.git
