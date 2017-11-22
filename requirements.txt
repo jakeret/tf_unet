@@ -3,4 +3,4 @@ numpy
 Pillow
 tensorflow>=1.0.0
 matplotlib
--e https://github.com/jakeret/tf_unet.git
+-e git://github.com/jakeret/tf_unet.git
