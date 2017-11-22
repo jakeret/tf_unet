@@ -12,6 +12,9 @@ Tensorflow Unet
 .. image:: https://img.shields.io/badge/ascl-1611.002-blue.svg?colorB=262255
         :target: http://ascl.net/1611.002
 
+.. image:: https://mybinder.org/badge.svg
+        :target: https://mybinder.org/v2/gh/jakeret/tf_unet/binder?filepath=demo%2Fdemo_toy_problem.ipynb
+
 
 This is a generic **U-Net** implementation as proposed by `Ronneberger et al. <https://arxiv.org/pdf/1505.04597.pdf>`_ developed with **Tensorflow**. The code has been developed and used for `Radio Frequency Interference mitigation using deep convolutional neural networks <http://arxiv.org/abs/1609.09077>`_ .
 
