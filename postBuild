@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# NOTE: this file needs to be executable in order to work.
+python setup.py install
