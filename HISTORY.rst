@@ -3,7 +3,14 @@
 History
 -------
 
-0.1.0 (2016-01-01)
+0.1.1 (2017-12-29)
 ++++++++++++++++++
 
-* First release on PyPI.
+* Support for Tensorflow > 1.0.0
+* Clean package structure
+* Integration into mybinder
+
+0.1.0 (2016-08-18)
+++++++++++++++++++
+
+* First release to GitHub.
