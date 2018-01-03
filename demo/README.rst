@@ -3,7 +3,7 @@ Tensorflow Unet demos
 =============================
 
 .. image:: https://mybinder.org/badge.svg
-        :target: https://mybinder.org/v2/gh/jakeret/tf_unet/binder?filepath=demo%2Fdemo_toy_problem.ipynb
+        :target: https://mybinder.org/v2/gh/jakeret/tf_unet/master?filepath=demo%2Fdemo_toy_problem.ipynb
 
 
 
