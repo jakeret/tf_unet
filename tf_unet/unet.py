@@ -388,7 +388,7 @@ class Trainer(object):
         :param write_graph: Flag if the computation graph should be written as protobuf file to the output path
         :param prediction_path: path where to save predictions on each epoch
         """
-        save_path = os.path.join(output_path, "model.cpkt")
+        save_path = os.path.join(output_path, "model.ckpt")
         if epochs == 0:
             return save_path
         
