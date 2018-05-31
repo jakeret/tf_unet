@@ -60,7 +60,7 @@ def pixel_wise_softmax(output_map):
 
 def pixel_wise_softmax_2(output_map):
     exponential_map = tf.exp(output_map)
-    sum_exp = tf.reduce_sum(exponential_map, 3, keep_dims=True)
+    sum_exp = tf.reduce_sum(exponential_map, 3, keepdims=True)
     tensor_sum_exp = tf.tile(sum_exp, tf.stack([1, 1, 1, tf.shape(output_map)[3]]))
     return tf.div(exponential_map,tensor_sum_exp)
 
