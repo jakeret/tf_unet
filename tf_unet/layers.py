@@ -33,13 +33,15 @@ def bias_variable(shape, name="bias"):
     return tf.Variable(initial, name=name)
 
 def conv2d(x, W,keep_prob_):
-    conv_2d = tf.nn.conv2d(x, W, strides=[1, 1, 1, 1], padding='VALID')
-    return tf.nn.dropout(conv_2d, keep_prob_)
+    with tf.name_scope("conv2d"):
+        conv_2d = tf.nn.conv2d(x, W, strides=[1, 1, 1, 1], padding='VALID', name="conv2d")
+        return tf.nn.dropout(conv_2d, keep_prob_)
 
 def deconv2d(x, W,stride):
-    x_shape = tf.shape(x)
-    output_shape = tf.stack([x_shape[0], x_shape[1]*2, x_shape[2]*2, x_shape[3]//2])
-    return tf.nn.conv2d_transpose(x, W, output_shape, strides=[1, stride, stride, 1], padding='VALID')
+    with tf.name_scope("deconv2d"):
+        x_shape = tf.shape(x)
+        output_shape = tf.stack([x_shape[0], x_shape[1]*2, x_shape[2]*2, x_shape[3]//2])
+        return tf.nn.conv2d_transpose(x, W, output_shape, strides=[1, stride, stride, 1], padding='VALID', name="conv2d_transpose")
 
 def max_pool(x,n):
     return tf.nn.max_pool(x, ksize=[1, n, n, 1], strides=[1, n, n, 1], padding='VALID')
@@ -68,5 +70,6 @@ def pixel_wise_softmax_2(output_map):
         return tf.div(exponential_map,tensor_sum_exp)
 
 def cross_entropy(y_,output_map):
-    return -tf.reduce_mean(y_*tf.log(tf.clip_by_value(output_map,1e-10,1.0)), name="cross_entropy")
-#     return tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(output_map), reduction_indices=[1]))
+    with tf.name_scope("xent"):
+        return -tf.reduce_mean(y_*tf.log(tf.clip_by_value(output_map,1e-10,1.0)), name="cross_entropy")
+        #return tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(output_map), reduction_indices=[1]))
