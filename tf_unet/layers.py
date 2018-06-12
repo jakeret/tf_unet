@@ -32,8 +32,8 @@ def bias_variable(shape):
     initial = tf.constant(0.1, shape=shape)
     return tf.Variable(initial)
 
-def conv2d(x, W,keep_prob_):
-    conv_2d = tf.nn.conv2d(x, W, strides=[1, 1, 1, 1], padding='VALID')
+def conv2d(x, W, b, keep_prob_):
+    conv_2d = tf.nn.conv2d(x, W, strides=[1, 1, 1, 1], padding='VALID') + b
     return tf.nn.dropout(conv_2d, keep_prob_)
 
 def deconv2d(x, W,stride):
