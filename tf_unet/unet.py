@@ -200,8 +200,10 @@ class Unet(object):
 
         self.gradients_node = tf.gradients(self.cost, self.variables)
 
-        self.cross_entropy = cross_entropy(tf.reshape(self.y, [-1, n_class]),
-                                           tf.reshape(pixel_wise_softmax_2(logits), [-1, n_class]))
+        
+        with tf.name_scope("xent"):
+            self.cross_entropy = cross_entropy(tf.reshape(self.y, [-1, n_class]),
+                                               tf.reshape(pixel_wise_softmax_2(logits), [-1, n_class]))
 
         with tf.name_scope("results"):
             self.predicter = pixel_wise_softmax_2(logits)
