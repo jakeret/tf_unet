@@ -90,15 +90,15 @@ def create_conv_net(x, keep_prob, channels, n_class, layers=3, features_root=16,
             b1 = bias_variable([features], name="b1")
             b2 = bias_variable([features], name="b2")
 
-            conv1 = conv2d(in_node, w1, keep_prob)
-            tmp_h_conv = tf.nn.relu(conv1 + b1)
-            conv2 = conv2d(tmp_h_conv, w2, keep_prob)
-            dw_h_convs[layer] = tf.nn.relu(conv2 + b2)
+            conv1 = conv2d(in_node, w1, b1, keep_prob)
+            tmp_h_conv = tf.nn.relu(conv1)
+            conv2 = conv2d(tmp_h_conv, w2, b2, keep_prob)
+            dw_h_convs[layer] = tf.nn.relu(conv2)
 
             weights.append((w1, w2))
             biases.append((b1, b2))
             convs.append((conv1, conv2))
-
+            
             size -= 4
             if layer < layers - 1:
                 pools[layer] = max_pool(dw_h_convs[layer], pool_size)
@@ -115,7 +115,9 @@ def create_conv_net(x, keep_prob, channels, n_class, layers=3, features_root=16,
 
             wd = weight_variable_devonc([pool_size, pool_size, features // 2, features], stddev, name="wd")
             bd = bias_variable([features // 2], name="bd")
-            h_deconv = tf.nn.relu(deconv2d(in_node, wd, pool_size) + bd)
+            h_deconv = tf.nn.relu(deconv2d(in_node, wd, pool_size) 
+                                  
+                                  d)
             h_deconv_concat = crop_and_concat(dw_h_convs[layer], h_deconv)
             deconv[layer] = h_deconv_concat
 
@@ -124,10 +126,10 @@ def create_conv_net(x, keep_prob, channels, n_class, layers=3, features_root=16,
             b1 = bias_variable([features // 2], name="b1")
             b2 = bias_variable([features // 2], name="b2")
 
-            conv1 = conv2d(h_deconv_concat, w1, keep_prob)
-            h_conv = tf.nn.relu(conv1 + b1)
-            conv2 = conv2d(h_conv, w2, keep_prob)
-            in_node = tf.nn.relu(conv2 + b2)
+            conv1 = conv2d(h_deconv_concat, w1, b1, keep_prob)
+            h_conv = tf.nn.relu(conv1)
+            conv2 = conv2d(h_conv, w2, b2, keep_prob)
+            in_node = tf.nn.relu(conv2)
             up_h_convs[layer] = in_node
 
             weights.append((w1, w2))
