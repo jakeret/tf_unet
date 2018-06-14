@@ -136,7 +136,7 @@ def create_conv_net(x, keep_prob, channels, n_class, layers=3, features_root=16,
     # Output Map
     weight = weight_variable([1, 1, features_root, n_class], stddev)
     bias = bias_variable([n_class])
-    conv = conv2d(in_node, weight, tf.constant(1.0))
+    conv = conv2d(in_node, weight, bias, tf.constant(1.0))
     output_map = tf.nn.relu(conv + bias)
     up_h_convs["out"] = output_map
 
