@@ -16,6 +16,7 @@ Contributors
 * `@AlessioM  <https://github.com/AlessioM>`_ 
 * `@FiLeonard  <https://github.com/FiLeonard>`_ 
 * `@nikkou  <https://github.com/nikkou>`_ 
+* `@wkeithvan  <https://github.com/wkeithvan>`_
 
 Citations
 ---------
