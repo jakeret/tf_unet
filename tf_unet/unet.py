@@ -141,26 +141,26 @@ def create_conv_net(x, keep_prob, channels, n_class, layers=3, features_root=16,
     with tf.name_scope("output_map"):
         weight = weight_variable([1, 1, features_root, n_class], stddev)
         bias = bias_variable([n_class], name="bias")
-        conv = conv2d(in_node, weight, tf.constant(1.0))
-        output_map = tf.nn.relu(conv + bias)
+        conv = conv2d(in_node, weight, bias, tf.constant(1.0))
+        output_map = tf.nn.relu(conv)
         up_h_convs["out"] = output_map
 
-    if summaries:
-        for i, (c1, c2) in enumerate(convs):
-            tf.summary.image('summary_conv_%02d_01' % i, get_image_summary(c1))
-            tf.summary.image('summary_conv_%02d_02' % i, get_image_summary(c2))
+        if summaries:
+            for i, (c1, c2) in enumerate(convs):
+                tf.summary.image('summary_conv_%02d_01' % i, get_image_summary(c1))
+                tf.summary.image('summary_conv_%02d_02' % i, get_image_summary(c2))
 
-        for k in pools.keys():
-            tf.summary.image('summary_pool_%02d' % k, get_image_summary(pools[k]))
+            for k in pools.keys():
+                tf.summary.image('summary_pool_%02d' % k, get_image_summary(pools[k]))
 
-        for k in deconv.keys():
-            tf.summary.image('summary_deconv_concat_%02d' % k, get_image_summary(deconv[k]))
+            for k in deconv.keys():
+                tf.summary.image('summary_deconv_concat_%02d' % k, get_image_summary(deconv[k]))
 
-        for k in dw_h_convs.keys():
-            tf.summary.histogram("dw_convolution_%02d" % k + '/activations', dw_h_convs[k])
+            for k in dw_h_convs.keys():
+                tf.summary.histogram("dw_convolution_%02d" % k + '/activations', dw_h_convs[k])
 
-        for k in up_h_convs.keys():
-            tf.summary.histogram("up_convolution_%s" % k + '/activations', up_h_convs[k])
+            for k in up_h_convs.keys():
+                tf.summary.histogram("up_convolution_%s" % k + '/activations', up_h_convs[k])
 
     variables = []
     for w1, w2 in weights:
