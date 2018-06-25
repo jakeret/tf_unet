@@ -145,7 +145,8 @@ def create_conv_net(x, keep_prob, channels, n_class, layers=3, features_root=16,
         output_map = tf.nn.relu(conv)
         up_h_convs["out"] = output_map
 
-        if summaries:
+    if summaries:
+        with tf.name_scope("summaries"):
             for i, (c1, c2) in enumerate(convs):
                 tf.summary.image('summary_conv_%02d_01' % i, get_image_summary(c1))
                 tf.summary.image('summary_conv_%02d_02' % i, get_image_summary(c2))
