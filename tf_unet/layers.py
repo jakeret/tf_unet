@@ -59,17 +59,11 @@ def crop_and_concat(x1,x2):
 
 def pixel_wise_softmax(output_map):
     with tf.name_scope("pixel_wise_softmax"):
-        exponential_map = tf.exp(output_map)
-        evidence = tf.add(exponential_map,tf.reverse(exponential_map,[False,False,False,True]))
-        return tf.div(exponential_map,evidence, name="pixel_wise_softmax")
-
-def pixel_wise_softmax_2(output_map):
-    with tf.name_scope("pixel_wise_softmax_2"):
-        exponential_map = tf.exp(output_map)
-        sum_exp = tf.reduce_sum(exponential_map, 3, keepdims=True)
-        tensor_sum_exp = tf.tile(sum_exp, tf.stack([1, 1, 1, tf.shape(output_map)[3]]))
-        return tf.div(exponential_map,tensor_sum_exp)
+        max_axis = tf.reduce_max(output_map, axis=3, keepdims=True)
+        exponential_map = tf.exp(output_map - max_axis)
+        normalize = tf.reduce_sum(exponential_map, axis=3, keepdims=True)
+        return exponential_map / normalize
 
 def cross_entropy(y_,output_map):
-    return -tf.reduce_mean(y_*tf.log(tf.clip_by_value(output_map,1e-10,1.0)), name="cross_entropy")
-    #return tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(output_map), reduction_indices=[1]))
+    with tf.name_scope("xent"):
+        return -tf.reduce_mean(y_*tf.log(tf.clip_by_value(output_map,1e-10,1.0)), name="cross_entropy")

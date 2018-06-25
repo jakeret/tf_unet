@@ -29,7 +29,7 @@ import tensorflow as tf
 
 from tf_unet import util
 from tf_unet.layers import (weight_variable, weight_variable_devonc, bias_variable,
-                            conv2d, deconv2d, max_pool, crop_and_concat, pixel_wise_softmax_2,
+                            conv2d, deconv2d, max_pool, crop_and_concat, pixel_wise_softmax,
                             cross_entropy)
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
@@ -200,13 +200,11 @@ class Unet(object):
 
         self.gradients_node = tf.gradients(self.cost, self.variables)
 
-
-        with tf.name_scope("xent"):
-            self.cross_entropy = cross_entropy(tf.reshape(self.y, [-1, n_class]),
-                                               tf.reshape(pixel_wise_softmax_2(logits), [-1, n_class]))
+        self.cross_entropy = cross_entropy(tf.reshape(self.y, [-1, n_class]),
+                                           tf.reshape(pixel_wise_softmax(logits), [-1, n_class]))
 
         with tf.name_scope("results"):
-            self.predicter = pixel_wise_softmax_2(logits)
+            self.predicter = pixel_wise_softmax(logits)
             self.correct_pred = tf.equal(tf.argmax(self.predicter, 3), tf.argmax(self.y, 3))
             self.accuracy = tf.reduce_mean(tf.cast(self.correct_pred, tf.float32))
 
@@ -241,7 +239,7 @@ class Unet(object):
                                                                                      labels=flat_labels))
             elif cost_name == "dice_coefficient":
                 eps = 1e-5
-                prediction = pixel_wise_softmax_2(logits)
+                prediction = pixel_wise_softmax(logits)
                 intersection = tf.reduce_sum(prediction * self.y)
                 union = eps + tf.reduce_sum(prediction) + tf.reduce_sum(self.y)
                 loss = -(2 * intersection / (union))
