@@ -65,5 +65,4 @@ def pixel_wise_softmax(output_map):
         return exponential_map / normalize
 
 def cross_entropy(y_,output_map):
-    with tf.name_scope("xent"):
-        return -tf.reduce_mean(y_*tf.log(tf.clip_by_value(output_map,1e-10,1.0)), name="cross_entropy")
+    return -tf.reduce_mean(y_*tf.log(tf.clip_by_value(output_map,1e-10,1.0)), name="cross_entropy")
