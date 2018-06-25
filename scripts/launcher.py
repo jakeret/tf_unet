@@ -25,7 +25,7 @@ from tf_unet import util
 
 
 if __name__ == '__main__':
-    np.random.seed(9876)
+    np.random.seed(98765)
 
     generator = image_gen.GrayScaleDataProvider(nx=572, ny=572, cnt=20, rectangles=False)
     
