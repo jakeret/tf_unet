@@ -307,17 +307,17 @@ class Trainer(object):
 
     :param net: the unet instance to train
     :param batch_size: size of training batch
+    :param verification_batch_size: size of verification batch
     :param norm_grads: (optional) true if normalized gradients should be added to the summaries
     :param optimizer: (optional) name of the optimizer to use (momentum or adam)
     :param opt_kwargs: (optional) kwargs passed to the learning rate (momentum opt) and to the optimizer
 
     """
 
-    verification_batch_size = 4
-
-    def __init__(self, net, batch_size=1, norm_grads=False, optimizer="momentum", opt_kwargs={}):
+    def __init__(self, net, batch_size=1, verification_batch_size = 4, norm_grads=False, optimizer="momentum", opt_kwargs={}):
         self.net = net
         self.batch_size = batch_size
+        self.verification_batch_size = verification_batch_size
         self.norm_grads = norm_grads
         self.optimizer = optimizer
         self.opt_kwargs = opt_kwargs
