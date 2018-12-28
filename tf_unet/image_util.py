@@ -16,10 +16,10 @@ author: jakeret
 '''
 from __future__ import print_function, division, absolute_import, unicode_literals
 
-#import cv2
 import glob
 import numpy as np
 from PIL import Image
+
 
 class BaseDataProvider(object):
     """
@@ -37,7 +37,6 @@ class BaseDataProvider(object):
     
     channels = 1
     n_class = 2
-    
 
     def __init__(self, a_min=None, a_max=None):
         self.a_min = a_min if a_min is not None else -np.inf
@@ -71,7 +70,10 @@ class BaseDataProvider(object):
         # normalization
         data = np.clip(np.fabs(data), self.a_min, self.a_max)
         data -= np.amin(data)
-        data /= np.amax(data)
+
+        if np.amax(data) != 0:
+            data /= np.amax(data)
+
         return data
     
     def _post_process(self, data, labels):
@@ -99,7 +101,8 @@ class BaseDataProvider(object):
             Y[i] = labels
     
         return X, Y
-    
+
+
 class SimpleDataProvider(BaseDataProvider):
     """
     A simple data provider for numpy arrays. 
@@ -135,6 +138,7 @@ class ImageDataProvider(BaseDataProvider):
     Assumes that the data images and label images are stored in the same folder
     and that the labels have a different file suffix 
     e.g. 'train/fish_1.tif' and 'train/fish_1_mask.tif'
+    Number of pixels in x and y of the images and masks should be even.
 
     Usage:
     data_provider = ImageDataProvider("..fishes/train/*.tif")
@@ -173,10 +177,8 @@ class ImageDataProvider(BaseDataProvider):
         all_files = glob.glob(search_path)
         return [name for name in all_files if self.data_suffix in name and not self.mask_suffix in name]
     
-    
     def _load_file(self, path, dtype=np.float32):
         return np.array(Image.open(path), dtype)
-        # return np.squeeze(cv2.imread(image_name, cv2.IMREAD_GRAYSCALE))
 
     def _cylce_file(self):
         self.file_idx += 1
