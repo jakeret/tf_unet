@@ -16,7 +16,10 @@
 Created on Jul 28, 2016
 
 author: jakeret
+
+Trains a tf_unet network to segment circles in noisy images.
 '''
+
 from __future__ import print_function, division, absolute_import, unicode_literals
 import numpy as np
 from tf_unet import image_gen
