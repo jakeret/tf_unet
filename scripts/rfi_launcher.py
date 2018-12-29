@@ -18,7 +18,6 @@ Created on Jul 28, 2016
 author: jakeret
 '''
 from __future__ import print_function, division, absolute_import, unicode_literals
-import os
 import glob
 import click
 
@@ -27,13 +26,6 @@ from tf_unet import util
 
 from scripts.radio_util import DataProvider
 
-def create_training_path(output_path):
-    idx = 0
-    path = os.path.join(output_path, "run_{:03d}".format(idx))
-    while os.path.exists(path):
-        idx += 1
-        path = os.path.join(output_path, "run_{:03d}".format(idx))
-    return path
 
 @click.command()
 @click.option('--data_root', default="./bleien_data")
@@ -54,7 +46,7 @@ def launch(data_root, output_path, training_iters, epochs, restore, layers, feat
                     cost_kwargs=dict(regularizer=0.001),
                     )
     
-    path = output_path if restore else create_training_path(output_path)
+    path = output_path if restore else util.create_training_path(output_path)
     trainer = unet.Trainer(net, optimizer="momentum", opt_kwargs=dict(momentum=0.2))
     path = trainer.train(data_provider, path, 
                          training_iters=training_iters, 
