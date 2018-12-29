@@ -37,7 +37,7 @@ from tf_unet.image_util import ImageDataProvider
 @click.option('--training_iters', default=32)
 @click.option('--epochs', default=100)
 @click.option('--restore', default=False)
-@click.option('--layers', default=5)
+@click.option('--layers', default=4)
 @click.option('--features_root', default=64)
 def launch(data_root, output_path, training_iters, epochs, restore, layers, features_root):
     print("Using data from: %s"%data_root)
@@ -57,7 +57,7 @@ def launch(data_root, output_path, training_iters, epochs, restore, layers, feat
     
     path = output_path if restore else util.create_training_path(output_path)
 
-    trainer = unet.Trainer(net, norm_grads=True, optimizer="adam")
+    trainer = unet.Trainer(net, batch_size=4, norm_grads=False, optimizer="adam")
     path = trainer.train(data_provider, path, 
                          training_iters=training_iters, 
                          epochs=epochs, 
@@ -70,10 +70,6 @@ def launch(data_root, output_path, training_iters, epochs, restore, layers, feat
      
     print("Testing error rate: {:.2f}%".format(unet.error_rate(prediction, util.crop_to_shape(y_test, prediction.shape))))
     
-
-if __name__ == '__main__':
-    launch()
-
 
 class DataProvider(ImageDataProvider):
     """
@@ -92,3 +88,7 @@ class DataProvider(ImageDataProvider):
 
     def _cylce_file(self):
         self.file_idx = np.random.choice(len(self.data_files))
+
+
+if __name__ == '__main__':
+    launch()

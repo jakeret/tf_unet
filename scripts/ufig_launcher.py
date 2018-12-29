@@ -70,10 +70,6 @@ def launch(data_root, output_path, training_iters, epochs, restore, layers, feat
     print("Testing error rate: {:.2f}%".format(unet.error_rate(prediction, util.crop_to_shape(label, prediction.shape))))
     
 
-if __name__ == '__main__':
-    launch()
-
-
 class DataProvider(BaseDataProvider):
     """
     Extends the BaseDataProvider to randomly select the next
@@ -127,3 +123,7 @@ class DataProvider(BaseDataProvider):
         labels[..., 0] = (1+np.clip(labels[...,1] + labels[...,2], 0, 1))%2
 
         return data, labels
+
+
+if __name__ == '__main__':
+    launch()
