@@ -18,6 +18,9 @@ Created on Aug 10, 2016
 author: jakeret
 '''
 from __future__ import print_function, division, absolute_import, unicode_literals
+
+import os
+
 import numpy as np
 from PIL import Image
 
@@ -122,3 +125,17 @@ def save_image(img, path):
     """
     Image.fromarray(img.round().astype(np.uint8)).save(path, 'JPEG', dpi=[300,300], quality=90)
 
+
+def create_training_path(output_path, prefix="run_"):
+    """
+    Enumerates a new path using the prefix under the given output_path
+    :param output_path: the root path
+    :param prefix: (optional) defaults to `run_`
+    :return: the generated path as string in form `output_path`/`prefix_` + `<number>`
+    """
+    idx = 0
+    path = os.path.join(output_path, "{:}{:03d}".format(prefix, idx))
+    while os.path.exists(path):
+        idx += 1
+        path = os.path.join(output_path, "{:}{:03d}".format(prefix, idx))
+    return path

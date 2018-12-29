@@ -25,14 +25,6 @@ from tf_unet import unet
 from tf_unet import util
 from scripts import ultrasound_util
 
-def create_training_path(output_path):
-    idx = 0
-    path = os.path.join(output_path, "run_{:03d}".format(idx))
-    while os.path.exists(path):
-        idx += 1
-        path = os.path.join(output_path, "run_{:03d}".format(idx))
-    return path
-
 @click.command()
 @click.option('--data_root', default="../../ultrasound/train")
 @click.option('--output_path', default="./unet_trained_ultrasound")
@@ -57,7 +49,8 @@ def launch(data_root, output_path, training_iters, epochs, restore, layers, feat
                     cost="dice_coefficient",
                     )
     
-    path = output_path if restore else create_training_path(output_path)
+    path = output_path if restore else util.create_training_path(output_path)
+
     trainer = unet.Trainer(net, norm_grads=True, optimizer="adam")
     path = trainer.train(data_provider, path, 
                          training_iters=training_iters, 
