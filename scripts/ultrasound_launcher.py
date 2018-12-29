@@ -43,6 +43,10 @@ def create_training_path(output_path):
 @click.option('--features_root', default=64)
 def launch(data_root, output_path, training_iters, epochs, restore, layers, features_root):
     print("Using data from: %s"%data_root)
+
+    if not os.path.exists(data_root):
+        raise IOError("Kaggle Ultrasound Dataset not found")
+
     data_provider = ultrasound_util.DataProvider(data_root + "/*.tif", 
                                       a_min=0, 
                                       a_max=210)
