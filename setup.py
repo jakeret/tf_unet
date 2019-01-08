@@ -19,7 +19,7 @@ PACKAGE_PATH = os.path.abspath(os.path.join(__file__, os.pardir))
 
 setup(
     name='tf_unet',
-    version='0.1.1',
+    version='0.1.2',
     description='Unet TensorFlow implementation',
     long_description=readme + '\n\n' + history,
     author='Joel Akeret',
