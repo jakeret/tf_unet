@@ -99,7 +99,7 @@ def create_conv_net(x, keep_prob, channels, n_class, layers=3, features_root=16,
             biases.append((b1, b2))
             convs.append((conv1, conv2))
 
-            size -= 2 * 2 * filter_size // 2 # valid conv
+            size -= 2 * 2 * (filter_size // 2) # valid conv
             if layer < layers - 1:
                 pools[layer] = max_pool(dw_h_convs[layer], pool_size)
                 in_node = pools[layer]
@@ -135,7 +135,7 @@ def create_conv_net(x, keep_prob, channels, n_class, layers=3, features_root=16,
             convs.append((conv1, conv2))
 
             size *= pool_size
-            size -= 2 * 2 * filter_size // 2 # valid conv
+            size -= 2 * 2 * (filter_size // 2) # valid conv
 
     # Output Map
     with tf.name_scope("output_map"):
