@@ -18,6 +18,7 @@ Contributors
 * `@nikkou  <https://github.com/nikkou>`_ 
 * `@wkeithvan  <https://github.com/wkeithvan>`_
 * `@samsammurphy  <https://github.com/samsammurphy>`_
+* `@siavashk  <https://github.com/siavashk>`_
 
 Citations
 ---------
