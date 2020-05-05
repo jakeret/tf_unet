@@ -15,8 +15,10 @@ Tensorflow Unet
 .. image:: https://mybinder.org/badge.svg
         :target: https://mybinder.org/v2/gh/jakeret/tf_unet/master?filepath=demo%2Fdemo_toy_problem.ipynb
 
-.. note::
-    This project is discontinued in favour of a Tensorflow 2 compatible reimplementation of `tf_unet` found under https://github.com/jakeret/unet
+.. warning::
+
+    This project is discontinued in favour of a Tensorflow 2 compatible reimplementation of this project found under https://github.com/jakeret/unet
+
 
 This is a generic **U-Net** implementation as proposed by `Ronneberger et al. <https://arxiv.org/pdf/1505.04597.pdf>`_ developed with **Tensorflow**. The code has been developed and used for `Radio Frequency Interference mitigation using deep convolutional neural networks <http://arxiv.org/abs/1609.09077>`_ .
 
