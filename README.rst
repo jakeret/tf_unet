@@ -15,6 +15,7 @@ Tensorflow Unet
 .. image:: https://mybinder.org/badge.svg
         :target: https://mybinder.org/v2/gh/jakeret/tf_unet/master?filepath=demo%2Fdemo_toy_problem.ipynb
 
+
 .. warning::
 
     This project is discontinued in favour of a Tensorflow 2 compatible reimplementation of this project found under https://github.com/jakeret/unet
